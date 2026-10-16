@@ -39,6 +39,45 @@ and the unsettled ones stay visible.
   quarter in the sample saw an intra-quarter rise like Q3-26, so uncovered days
   may earn a higher fraction than history shows. Hypothesis, not finding.
   **30 November settles it.**
+- **The locked share is not Frontline's coverage, and it is not a confidence
+  measure.** Two separate findings from 16 Oct 2026, both against all 18
+  disclosures (`report_date` now carries the publication date of each).
+
+  First, the kernel's locked share and Frontline's disclosed "% covered" are
+  different quantities. At the 18 report dates the kernel sits a mean **+14.4
+  points** above the disclosure, sd 9.3, range −7.6 to +25.0. The gap does not
+  correct away: lengthening the kernel window from 67 days to 120 leaves the
+  mean gap at +5.5 to +5.6 throughout, because every report lands 51–60 days
+  into the covered quarter (mean 56.7) by which point nearly every feeding week
+  is published whatever window is assumed. The kernel asks whether the index
+  for a day has printed. Frontline asks whether a fixture exists against that
+  day — a commercial choice that ran 68–92% across the sample, correlating
+  +0.45 with the contracted rate. The kernel cannot see it.
+
+  Second, and worse for the dashboard: **forecast error does not fall as the
+  locked share rises.** Kernel estimate vs realised VLCC spot TCE, 2023Q1
+  onward (2022 excluded — the blend prints negative there):
+
+  | locked | n | mean error | mean abs error |
+  |---|---|---|---|
+  | ~50% | 14 | −3.6% | 10.5% |
+  | ~65% | 14 | −4.8% | 8.5% |
+  | ~74% | 14 | −5.1% | 8.8% |
+  | ~90% | 10 | −5.5% | 10.4% |
+  | 100% | 5 | −6.9% | 11.6% |
+
+  Flat. The residual is not in the unpublished weeks; it is in the mapping from
+  index blend to Frontline's realised number — fleet age and mix, which voyages
+  are actually taken, waiting time. Excluding 2023Q4, which dominates both
+  tails (−43% to −27%), the 74% band gives ~6.3% mean absolute error.
+
+  Consequence: a rising locked share does not mean a tightening forecast, and
+  waiting for weeks to accumulate does not buy accuracy. The 30 November report
+  matters because it supplies Q3 actual and Q4 contracted rate plus coverage —
+  hard disclosure — not because more Baltic weeks will have printed.
+  Caveats: n=14, bands are coarse enough that a quarter can skip one, and the
+  kernel parameters were fitted on 2025Q4–2026Q2, so this is not out-of-sample.
+
 - **Fleet-quality haircut — the live question.** Fearnleys quotes 1-yr T/C for
   modern eco/scrubber tonnage; this fleet is older. At T/C rates the stock
   yields 30.8% at $55.87; a 10% haircut gives 27.4%, a 20% haircut 24.1% — fair
