@@ -195,7 +195,11 @@ document.getElementById("tiles").innerHTML = `
   <h2>${nextQ} — covered</h2>
   <div class="hero">${fmt.pct(covNow,0)}</div>
   <div class="sub2">of the quarter already fixed, estimated from Frontline's own disclosures</div>
-  <div class="rowline" style="margin-top:8px"><span class="muted">day of quarter</span><span>${qDay} of ${qLen}</span></div>
+  <!-- The rate the PRINTED weeks have earned for this quarter — published Baltic
+       only, no forward curve in it. The forecast table's figure for the same
+       quarter blends in the curve preset, so these differ and should. -->
+  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, rate on printed weeks</span><span>${fmt.usd(qV.tce)}</span></div>
+  <div class="rowline"><span class="muted">Suezmax, rate on printed weeks</span><span>${fmt.usd(qS.tce)}</span></div>
 </div>
 
 <div class="card">
