@@ -1,10 +1,11 @@
 date,close,source
-2026-08-28,41.4,market close
+2026-08-28,41.40,market close
 2026-09-04,43.21,market close
-2026-09-11,46.1,market close
+2026-09-11,46.10,market close
 2026-09-18,51.42,market close
 2026-09-25,47.73,market close
 2026-10-02,52.74,market close
-2026-10-09,52.78,market close
-2026-10-13,59.04,market close
-2026-10-14,55.87,market close
+2026-10-09,56.10,DERIVED: 52.78 was a stale duplicate of 02-10. Reconstructed from daily % moves off 02-10 and back from 15-10; both chains agree
+2026-10-13,59.04,stockanalysis.com/stocks/fro
+2026-10-14,56.27,stockanalysis.com/stocks/fro
+2026-10-15,52.54,stockanalysis.com/stocks/fro
