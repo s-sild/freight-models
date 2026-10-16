@@ -52,7 +52,7 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
   border-radius: 10px; padding: 14px 16px;
 }
 .card.full { grid-column: 1 / -1; }
-.tiles3 { display: grid; gap: 12px; grid-template-columns: 0.75fr 1.5fr 0.75fr; align-items: start; }
+.tiles3 { display: grid; gap: 12px; grid-template-columns: 0.75fr 1.5fr 0.75fr; align-items: stretch; }
 .tiles3 .mid { grid-column: 2; grid-row: 1 / span 2; }
 @media (max-width: 860px) {
   .tiles3 { grid-template-columns: 1fr; }
@@ -119,6 +119,8 @@ button.preset:hover { color: var(--text-primary); }
 a { color: var(--series-1); }
 
 /* the route table lives in a narrower column — keep labels on one line */
-#routes { font-size: 12.5px; }
-#routes th, #routes td { padding: 5px 4px; white-space: nowrap; }
-#routes td.t { padding-right: 10px; }
+/* both tables share one column grid so the dates line up down the box */
+#routes, #fwd { font-size: 12.5px; table-layout: fixed; width: 100%; }
+#routes th.t, #routes td.t, #fwd th.t, #fwd td.t { width: 136px; }
+#routes th, #routes td, #fwd th, #fwd td { padding: 5px 4px; white-space: nowrap; }
+#routes td.t, #fwd td.t { padding-right: 10px; }
