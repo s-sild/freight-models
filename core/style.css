@@ -52,7 +52,7 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
   border-radius: 10px; padding: 14px 16px;
 }
 .card.full { grid-column: 1 / -1; }
-.tiles3 { display: grid; gap: 12px; grid-template-columns: 0.6fr 1.8fr 0.6fr; align-items: stretch; }
+.tiles3 { display: grid; gap: 12px; grid-template-columns: 0.75fr 1.5fr 0.75fr; align-items: stretch; }
 .tiles3 > * { align-self: stretch; height: 100%; }
 .tiles3 .mid { grid-column: 2; grid-row: 1 / span 2; }
 @media (max-width: 860px) {
@@ -60,7 +60,7 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
   .tiles3 .mid { grid-column: 1; grid-row: auto; }
 }
 .seg { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
-       color: var(--text-muted); font-weight: 600; margin: 16px 0 8px; }
+       color: var(--text-muted); font-weight: 600; margin: 28px 0 8px; }
 .seg:first-of-type { margin-top: 0; }
 .card h2 {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;

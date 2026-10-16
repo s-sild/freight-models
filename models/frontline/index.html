@@ -159,7 +159,6 @@ document.getElementById("tiles").innerHTML = `
   <div class="sub2">FCF yield on the published base case</div>
   <div class="rowline" style="margin-top:8px"><span class="muted">12m VLCC @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)}</span></div>
   <div class="rowline"><span class="muted">12m VLCC @ ${fmt.pct(cfg.required_yields.alt,0)}</span><span>${fmt.usd(m.impliedRate(close, cfg.required_yields.alt)*1000)}</span></div>
-  <p class="note">The price read backwards: what a flat 12-month VLCC must average to justify it.</p>
 </div>
 
 <div class="card">
@@ -168,7 +167,6 @@ document.getElementById("tiles").innerHTML = `
   <div class="sub2">of the quarter fixed by published weeks</div>
   <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, locked days</span><span>${fmt.usd(qV.tce)}</span></div>
   <div class="rowline"><span class="muted">Suezmax, locked days</span><span>${fmt.usd(qS.tce)}</span></div>
-  <p class="note">Earning-days already fixed by published Baltic weeks.</p>
 </div>
 
 <div class="card">
@@ -177,7 +175,6 @@ document.getElementById("tiles").innerHTML = `
   <div class="sub2">FCF yield if the 1-yr T/C held for 12 months</div>
   <div class="rowline" style="margin-top:8px"><span class="muted">FCF / share</span><span>${fmt.usd2(fpsTC)}</span></div>
   <div class="rowline"><span class="muted">price @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd2(fpsTC/cfg.required_yields.base)}</span></div>
-  <p class="note">${fmt.usd(tcV)} on offer against the ${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)} the price needs. Before any fleet-age haircut.</p>
 </div>`;
 
 // route table, plus the Hormuz premium on the same dates
