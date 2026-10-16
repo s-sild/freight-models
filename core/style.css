@@ -125,3 +125,14 @@ a { color: var(--series-1); }
 #routes th.t, #routes td.t, #fwd th.t, #fwd td.t { width: 136px; }
 #routes th, #routes td, #fwd th, #fwd td { padding: 5px 4px; white-space: nowrap; }
 #routes td.t, #fwd td.t { padding-right: 10px; }
+
+/* Phone: five date columns do not fit. 358px of wrap less a 136px label leaves
+   ~44px a column, and $1,213k needs ~48px, so the figures collide. Drop the two
+   intermediate weeks and keep month-ago · week-ago · latest, left to right.
+   Desktop is unaffected — above this width nothing here applies. */
+@media (max-width: 520px) {
+  #routes th:nth-child(3), #routes td:nth-child(3),
+  #routes th:nth-child(4), #routes td:nth-child(4),
+  #fwd th:nth-child(3), #fwd td:nth-child(3),
+  #fwd th:nth-child(4), #fwd td:nth-child(4) { display: none; }
+}
