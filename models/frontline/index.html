@@ -184,7 +184,8 @@ const ROUTES = [
     const d = new Date(tV - back * 7 * DAY).toISOString().slice(0, 10);
     return [d, byWeek.get(d)];
   };
-  const cols = [pick(0), pick(1), pick(4)];
+  // oldest to newest, left to right — time runs the same way as the chart
+  const cols = [pick(4), pick(1), pick(0)];
   document.getElementById("routes").innerHTML =
     `<tr><th class="t">Route</th>${cols.map(([d]) => `<th>${d}</th>`).join("")}</tr>` +
     ROUTES.map(([code, lane]) => `<tr>
