@@ -46,16 +46,32 @@ export function quarterBounds(q) {
   return [Date.UTC(y, 3 * qq - 3, 1), qq === 4 ? Date.UTC(y + 1, 0, 1) : Date.UTC(y, 3 * qq, 1)];
 }
 
-/** series: [[msTimestamp, rate|null], ...]. Returns {tce, observed}. */
+/**
+ * series: [[msTimestamp, rate|null], ...] — published weeks only.
+ * Returns {tce, observed}.
+ *
+ * `observed` is measured against every week that FEEDS the quarter, including
+ * ones not yet published. Dividing by the weeks present in the series instead
+ * returns ~1.0 by construction, since an unpublished week is simply absent.
+ */
 export function kernelQuarter(series, q, { a, b, factor = 1 }) {
   const [qs, qe] = quarterBounds(q);
+  const have = new Map(series.filter(p => p[1] !== null));
+  if (!have.size) return { tce: null, observed: 0 };
+  const anchor = Math.max(...have.keys());
+
+  // a week D reaches the quarter when D is in (qs - a - b, qe - a)
+  const first = qs - (a + b + 7) * DAY, last = qe - a * DAY + 7 * DAY;
+  const start = first + (((anchor - first) / DAY) % 7) * DAY;
+
   let total = 0, known = 0, acc = 0;
-  for (const [t, rate] of series) {
+  for (let t = start; t <= last; t += 7 * DAY) {
     const s = t + a * DAY, e = s + b * DAY;
     const ov = Math.max(0, (Math.min(e, qe) - Math.max(s, qs)) / DAY);
     if (ov <= 0) continue;
     total += ov;
-    if (rate !== null) { known += ov; acc += ov * rate; }
+    const r = have.get(t);
+    if (r !== undefined) { known += ov; acc += ov * r; }
   }
   if (!known) return { tce: null, observed: 0 };
   return { tce: (acc / known) * factor, observed: known / total };

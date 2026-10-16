@@ -87,6 +87,7 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
 th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 th:first-child, td:first-child { text-align: left; }
+th.t, td.t { text-align: left; }   /* text columns beyond the first */
 th { color: var(--text-muted); font-weight: 600; font-size: 11.5px;
      text-transform: uppercase; letter-spacing: 0.05em; }
 td { font-variant-numeric: tabular-nums; }

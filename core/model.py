@@ -106,19 +106,45 @@ class Kernel:
             out.append(max(0, overlap))
         return out
 
+    def feed_weeks(self, anchor, q):
+        """
+        Every weekly date whose earning window can touch quarter q, published or
+        not. A week D earns across [D+a, D+a+b), so it reaches q when
+        D is in (qs - a - b, qe - a). `anchor` fixes the day of week.
+        """
+        qs, qe = quarter_bounds(q)
+        first = qs - timedelta(days=self.a + self.b + 7)
+        last = qe - timedelta(days=self.a) + timedelta(days=7)
+        shift = (anchor - first).days % 7
+        d, out = first + timedelta(days=shift), []
+        while d <= last:
+            out.append(d)
+            d += timedelta(days=7)
+        return out
+
     def quarter(self, series, q):
-        """series = {date: rate}. Returns (tce, share_of_weight_observed)."""
-        weeks = sorted(series)
+        """
+        series = {date: rate}, published weeks only.
+
+        Returns (tce, share_observed). The denominator is every week that FEEDS
+        the quarter, including ones not yet published — otherwise the share is
+        near 1.0 by construction, because a week with no data is simply absent
+        from the series.
+        """
+        if not series:
+            return None, 0.0
+        anchor = max(series)
+        weeks = self.feed_weeks(anchor, q)
         w = self.weights(weeks, q)
         tot = sum(w)
         if tot == 0:
             return None, 0.0
-        known = [(wi, series[d]) for wi, d in zip(w, weeks) if wi > 0 and series[d] is not None]
+        known = [(wi, series[d]) for wi, d in zip(w, weeks)
+                 if wi > 0 and series.get(d) is not None]
         kw = sum(wi for wi, _ in known)
         if kw == 0:
             return None, 0.0
-        bench = sum(wi * r for wi, r in known) / kw
-        return bench * self.factor, kw / tot
+        return sum(wi * r for wi, r in known) / kw * self.factor, kw / tot
 
 
 # --------------------------------------------------------------------------
