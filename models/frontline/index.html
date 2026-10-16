@@ -269,12 +269,12 @@ const fx = fixtures
 if (fx.length) {
   document.getElementById("fx-h").textContent = `Frontline fixtures — latest ${fx.length}`;
   document.getElementById("fx").innerHTML =
-    `<tr><th>Reported</th><th class="t">Vessel</th><th class="t">Route</th><th class="t">Charterer</th>
-      <th>RV TCE</th><th>Days</th></tr>` +
+    `<tr><th class="c-when">Reported</th><th class="t">Vessel</th><th class="t">Route</th>
+      <th class="t c-who">Charterer</th><th>RV TCE</th><th>Days</th></tr>` +
     fx.map(r => `<tr>
-      <td>${r.reported}</td>
+      <td class="c-when">${r.reported}</td>
       <td class="t">${r.vessel}${r.status && r.status !== "Fixed" ? ` <span class="muted">(${r.status})</span>` : ""}</td>
-      <td class="t">${r.route || "—"}</td><td class="t muted">${r.charterer || "—"}</td>
+      <td class="t">${r.route || "—"}</td><td class="t muted c-who">${r.charterer || "—"}</td>
       <td>${fmt.usd(num(r.rv_tce))}</td><td>${num(r.rv_days) ?? "—"}</td></tr>`).join("") +
     (() => {
       const d = fx.reduce((s, r) => s + (num(r.rv_days) || 0), 0);
@@ -312,8 +312,9 @@ function render() {
   const fwd = curve();
   const Vf = [...V, ...fwd];
   const Sf = [...S, ...fwd.map(([t,v]) => [t, v*state.ratio])];
-  let rows = `<tr><th>Quarter</th><th>observed</th><th>VLCC</th><th>Suezmax</th>
-    <th>FCF/sh</th><th>@${fmt.pct(cfg.required_yields.base,0)}</th><th>@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
+  let rows = `<tr><th>Quarter</th><th class="c-obs">observed</th><th>VLCC</th><th>Suezmax</th>
+    <th>FCF/sh</th><th>@${fmt.pct(cfg.required_yields.base,0)}</th>
+    <th class="c-y20">@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
   const blend12 = {}; let wsum = 0;
   for (const q of cfg.quarters_12m) {
     const a = kernelQuarter(Vf, q, kv), b = kernelQuarter(Sf, q, ks);
@@ -322,19 +323,21 @@ function render() {
     const fps = m.fcfPerShare(r);
     const dq = cfg.vlcc_spot_days_by_quarter[q] || 0;
     wsum += dq; blend12.v = (blend12.v||0) + a.tce*dq; blend12.s = (blend12.s||0) + b.tce*dq;
-    rows += `<tr><td>${q}</td><td>${fmt.pct(a.observed,0)}</td><td>${fmt.usd(a.tce)}</td>
+    rows += `<tr><td>${q}</td><td class="c-obs">${fmt.pct(a.observed,0)}</td><td>${fmt.usd(a.tce)}</td>
       <td>${fmt.usd(b.tce)}</td><td>${fmt.usd2(fps)}</td>
-      <td>${fmt.usd2(fps/cfg.required_yields.base)}</td><td>${fmt.usd2(fps/cfg.required_yields.alt)}</td></tr>`;
+      <td>${fmt.usd2(fps/cfg.required_yields.base)}</td>
+      <td class="c-y20">${fmt.usd2(fps/cfg.required_yields.alt)}</td></tr>`;
   }
   const r12 = { vlcc: blend12.v/wsum/1000, smax: blend12.s/wsum/1000,
                 lr2: (blend12.v/wsum/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
   const f12 = m.fcfPerShare(r12);
-  rows += `<tr style="font-weight:600"><td>12-month</td><td class="muted">day-weighted</td>
+  rows += `<tr style="font-weight:600"><td>12-month</td><td class="muted c-obs">day-weighted</td>
     <td>${fmt.usd(blend12.v/wsum)}</td><td>${fmt.usd(blend12.s/wsum)}</td><td>${fmt.usd2(f12)}</td>
-    <td>${fmt.usd2(f12/cfg.required_yields.base)}</td><td>${fmt.usd2(f12/cfg.required_yields.alt)}</td></tr>
+    <td>${fmt.usd2(f12/cfg.required_yields.base)}</td>
+    <td class="c-y20">${fmt.usd2(f12/cfg.required_yields.alt)}</td></tr>
     <tr><td class="muted">vs close ${fmt.usd2(close)}</td><td colspan="4"></td>
     <td class="${f12/cfg.required_yields.base>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.base/close-1,0)}</td>
-    <td class="${f12/cfg.required_yields.alt>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.alt/close-1,0)}</td></tr>`;
+    <td class="c-y20 ${f12/cfg.required_yields.alt>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.alt/close-1,0)}</td></tr>`;
   document.getElementById("fc").innerHTML = rows;
 }
 

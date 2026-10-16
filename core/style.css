@@ -145,4 +145,26 @@ a { color: var(--series-1); }
   #routes th:nth-child(4), #routes td:nth-child(4),
   #fwd th:nth-child(3), #fwd td:nth-child(3),
   #fwd th:nth-child(4), #fwd td:nth-child(4) { display: none; }
+
+  /* Fixtures: six columns measure 477px against 358px of wrap, so the table
+     pushed the whole page sideways. Drop the reported date and the charterer —
+     vessel, route, rate and days are what the row is read for, and the route is
+     what explains the rate. Hidden by class, not nth-child: the day-weighted
+     total row is a colspan and would lose its label. */
+  #fx .c-when, #fx .c-who { display: none; }
+  #fx { font-size: 12.5px; }
+  #fx th, #fx td { padding: 5px 4px; }
+
+  /* Forecast: seven columns do not fit either. The observed share is already a
+     tile at the top of the page, and the second required yield is the shadow
+     figure the notes say not to carry on a glance surface. Both go. */
+  #fc .c-obs, #fc .c-y20 { display: none; }
+  #fc { font-size: 12.5px; }
+  #fc th, #fc td { padding: 5px 4px; }
+
+  /* Guard. Column widths depend on the longest figure, which changes weekly, so
+     no fixed set of hidden columns is safe forever. If a table still exceeds its
+     card it scrolls inside that card instead of shoving the whole page sideways.
+     Never applies to the route box, which is the one read at a glance. */
+  .card:has(#fx), .card:has(#fc) { overflow-x: auto; }
 }
