@@ -189,13 +189,6 @@ const tcRow = (k, label) => `<tr><td class="t muted">${label}</td>${
 document.getElementById("fwd").innerHTML =
   `<tr><th class="t">Size</th>${cols.map(([d]) => `<th>${d.slice(5)}</th>`).join("")}</tr>` +
   tcRow("vlcc_1yr_tc", "VLCC") +
-  // VLCC spot beside its forward price, and how far TD3C sits above the Atlantic lanes
-  `<tr><td class="t muted">Atl average</td>${
-    cols.map(([, r]) => `<td>${r && atl(r) ? "$"+fmt.k(atl(r)) : "—"}</td>`).join("")}</tr>` +
-  `<tr><td class="t muted">TD3C ÷ Atl avg</td>${cols.map(([, r]) => {
-      const a = r ? atl(r) : null, t = r ? num(r.TD3C) : null;
-      return `<td>${a && t ? (t/a).toFixed(2) + "×" : "—"}</td>`;
-    }).join("")}</tr>` +
   tcRow("smax_1yr_tc", "Suezmax") +
   tcRow("afra_1yr_tc", "Aframax") +
   `<tr><td class="t muted">Suezmax ÷ VLCC</td>${cols.map(([,,t]) => {
@@ -205,10 +198,21 @@ document.getElementById("fwd").innerHTML =
 
 document.getElementById("routes").innerHTML =
   hdr +
-  ROUTES.map(([code, lane]) => `<tr>
-    <td class="t">${code} <span class="muted">${lane}</span></td>
-    ${cols.map(([, r]) => `<td>${r ? "$"+fmt.k(num(r[code])) : "—"}</td>`).join("")}
-  </tr>`).join("");
+  ROUTES.map(([code, lane]) => {
+    const row = `<tr>
+      <td class="t">${code} <span class="muted">${lane}</span></td>
+      ${cols.map(([, r]) => `<td>${r ? "$"+fmt.k(num(r[code])) : "—"}</td>`).join("")}
+    </tr>`;
+    // the two derived VLCC lines sit directly below the lanes they come from
+    if (code !== "TD22") return row;
+    return row +
+      `<tr><td class="t">Atl average</td>${
+        cols.map(([, r]) => `<td>${r && atl(r) ? "$"+fmt.k(atl(r)) : "—"}</td>`).join("")}</tr>` +
+      `<tr><td class="t">TD3C ÷ Atl avg</td>${cols.map(([, r]) => {
+          const a = r ? atl(r) : null, t = r ? num(r.TD3C) : null;
+          return `<td>${a && t ? (t/a).toFixed(2) + "×" : "—"}</td>`;
+        }).join("")}</tr>`;
+  }).join("");
 
 // ---- charts --------------------------------------------------------------
 // Default view is the last 24 months. The full series back to 2022 stays in the
