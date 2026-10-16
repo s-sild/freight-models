@@ -43,6 +43,12 @@
     "note": "0.24 is not an assumption. On 28 August 2026, the day the slide was published, FRO closed at $41.40 against the slide's own $10.35 base-case FCF/share - a 25.0% cap rate. 24% sits a point inside that."
   },
 
+  "coverage_estimate": {
+    "phi": 0.447,
+    "phi_smax": 0.326,
+    "note": "Share of a quarter's REMAINING days already fixed, so covered = elapsed + phi * (1 - elapsed). Solved from all 18 disclosures: every quarterly report states next-quarter coverage, and each lands 51-60 days into that quarter (mean 56.7). phi is the full-sample mean. The last five quarters average 0.586 and phi correlates +0.45 with the contracted rate, but the regression (R2 0.31) returns phi 1.62 when fed today's spot - four times outside its fitted range - so the recent regime is not extrapolable and the full sample is used. phi is observed only at day ~57 and is assumed flat across the quarter; it likely rises toward 1 near quarter end, which would make this an overstatement early in a quarter."
+  },
+
   "quarters_12m": ["2026Q4", "2027Q1", "2027Q2", "2027Q3"],
   "vlcc_spot_days_by_quarter": {"2026Q4": 2136, "2027Q1": 2309, "2027Q2": 3058, "2027Q3": 3468},
 

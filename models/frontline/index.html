@@ -70,7 +70,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
       <button class="preset" data-preset="base">At base case</button>
     </div>
     <table id="fc"></table>
-    <p class="note">Anchors drive unpublished weeks only. “Locked” is the share already fixed by published weeks.</p>
+    <p class="note">Anchors drive the weeks that have not printed yet. How much of the current quarter is already fixed is the covered tile above.</p>
   </div>
 
   <div class="card full placeholder" style="margin-top:12px">
@@ -87,7 +87,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
 </div>
 
 <script type="module">
-import { parseCSV, num, blend, kernelQuarter, FcfModel, fmt } from "../../core/model.js";
+import { parseCSV, num, blend, kernelQuarter, coveredShare, quarterBounds, FcfModel, fmt } from "../../core/model.js";
 import { lineChart } from "../../core/viz.js";
 
 const DAY = 86400000;
@@ -117,10 +117,21 @@ const price = px.filter(r => num(r.close) !== null).at(-1);
 const close = num(price.close);
 const m = new FcfModel(cfg.fcf);
 
-// ---- next quarter, locked share -----------------------------------------
+// ---- next quarter ---------------------------------------------------------
 const nextQ = cfg.quarters_12m[0];
 const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
 const qV = kernelQuarter(V, nextQ, kv), qS = kernelQuarter(S, nextQ, ks);
+
+// How much of it is already fixed. This is the covered-share estimate built on
+// Frontline's own disclosures, not the kernel's locked share — the latter only
+// says whether an index printed, has no company meaning, and was measured to
+// carry no relation to forecast error. It stays inside the kernel as a weight
+// and is never shown. See notes.md.
+const today = Date.now();
+const [qsMs, qeMs] = quarterBounds(nextQ);
+const qLen = Math.round((qeMs - qsMs) / DAY);
+const qDay = Math.max(0, Math.min(qLen, Math.round((today - qsMs) / DAY)));
+const covNow = coveredShare(today, nextQ, cfg.coverage_estimate.phi);
 
 // ---- forward market ------------------------------------------------------
 const tcV = num(tc.vlcc_1yr_tc), tcS = num(tc.smax_1yr_tc), tcA = num(tc.afra_1yr_tc);
@@ -181,11 +192,10 @@ document.getElementById("tiles").innerHTML = `
 </div>
 
 <div class="card">
-  <h2>${nextQ} — already locked</h2>
-  <div class="hero">${fmt.pct(qV.locked,0)}</div>
-  <div class="sub2">of the quarter fixed by published weeks</div>
-  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, locked days</span><span>${fmt.usd(qV.tce)}</span></div>
-  <div class="rowline"><span class="muted">Suezmax, locked days</span><span>${fmt.usd(qS.tce)}</span></div>
+  <h2>${nextQ} — covered</h2>
+  <div class="hero">${fmt.pct(covNow,0)}</div>
+  <div class="sub2">of the quarter already fixed, estimated from Frontline's own disclosures</div>
+  <div class="rowline" style="margin-top:8px"><span class="muted">day of quarter</span><span>${qDay} of ${qLen}</span></div>
 </div>
 
 <div class="card">
@@ -312,18 +322,17 @@ function render() {
   const fwd = curve();
   const Vf = [...V, ...fwd];
   const Sf = [...S, ...fwd.map(([t,v]) => [t, v*state.ratio])];
-  let rows = `<tr><th>Quarter</th><th class="c-locked">locked</th><th>VLCC</th><th>Suezmax</th>
+  let rows = `<tr><th>Quarter</th><th>VLCC</th><th>Suezmax</th>
     <th>FCF/sh</th><th>@${fmt.pct(cfg.required_yields.base,0)}</th>
     <th class="c-y20">@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
   const blend12 = {}; let wsum = 0;
   for (const q of cfg.quarters_12m) {
     const a = kernelQuarter(Vf, q, kv), b = kernelQuarter(Sf, q, ks);
-    a.locked = kernelQuarter(V, q, kv).locked;   // published weeks only
-    const r = { vlcc: a.tce/1000, smax: b.tce/1000, lr2: (a.tce/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
+        const r = { vlcc: a.tce/1000, smax: b.tce/1000, lr2: (a.tce/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
     const fps = m.fcfPerShare(r);
     const dq = cfg.vlcc_spot_days_by_quarter[q] || 0;
     wsum += dq; blend12.v = (blend12.v||0) + a.tce*dq; blend12.s = (blend12.s||0) + b.tce*dq;
-    rows += `<tr><td>${q}</td><td class="c-locked">${fmt.pct(a.locked,0)}</td><td>${fmt.usd(a.tce)}</td>
+    rows += `<tr><td>${q}</td><td>${fmt.usd(a.tce)}</td>
       <td>${fmt.usd(b.tce)}</td><td>${fmt.usd2(fps)}</td>
       <td>${fmt.usd2(fps/cfg.required_yields.base)}</td>
       <td class="c-y20">${fmt.usd2(fps/cfg.required_yields.alt)}</td></tr>`;
@@ -331,11 +340,11 @@ function render() {
   const r12 = { vlcc: blend12.v/wsum/1000, smax: blend12.s/wsum/1000,
                 lr2: (blend12.v/wsum/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
   const f12 = m.fcfPerShare(r12);
-  rows += `<tr style="font-weight:600"><td>12-month</td><td class="muted c-locked">day-weighted</td>
+  rows += `<tr style="font-weight:600"><td>12-month <span class="muted">day-weighted</span></td>
     <td>${fmt.usd(blend12.v/wsum)}</td><td>${fmt.usd(blend12.s/wsum)}</td><td>${fmt.usd2(f12)}</td>
     <td>${fmt.usd2(f12/cfg.required_yields.base)}</td>
     <td class="c-y20">${fmt.usd2(f12/cfg.required_yields.alt)}</td></tr>
-    <tr><td class="muted">vs close ${fmt.usd2(close)}</td><td colspan="4"></td>
+    <tr><td class="muted">vs close ${fmt.usd2(close)}</td><td colspan="3"></td>
     <td class="${f12/cfg.required_yields.base>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.base/close-1,0)}</td>
     <td class="c-y20 ${f12/cfg.required_yields.alt>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.alt/close-1,0)}</td></tr>`;
   document.getElementById("fc").innerHTML = rows;

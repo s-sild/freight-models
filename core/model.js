@@ -78,6 +78,25 @@ export function kernelQuarter(series, q, { a, b, factor = 1 }) {
   return { tce: (acc / known) * factor, locked: known / total };
 }
 
+// --- 3a. covered share ------------------------------------------------------
+/**
+ * Estimated share of quarter q already fixed as of `asof` (ms timestamp):
+ *     covered = elapsed + phi * (1 - elapsed)
+ * Elapsed days are covered by definition; phi of the remainder is already
+ * fixed. Solved from Frontline's 18 disclosures — see config coverage_estimate.
+ *
+ * Not the kernel's locked share: that asks whether the index for a day has
+ * printed, this asks whether a fixture exists against it. Null before the
+ * quarter starts, where phi carries no information.
+ */
+export function coveredShare(asof, q, phi) {
+  const [qs, qe] = quarterBounds(q);
+  if (asof < qs) return null;
+  if (asof >= qe) return 1;
+  const elapsed = (asof - qs) / (qe - qs);
+  return elapsed + phi * (1 - elapsed);
+}
+
 // --- 3. coverage model ------------------------------------------------------
 export const coverage = (contracted, covPct, k) => {
   const c = covPct > 1 ? covPct / 100 : covPct;

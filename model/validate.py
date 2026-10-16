@@ -6,10 +6,10 @@ Excel model produced and that we argued about and verified over two weeks.
 If the port does not reproduce them, the port is wrong.
 """
 import sys, os, json
-from datetime import datetime
+from datetime import datetime, date as dt, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "core"))
 from model import (read_csv, num, blend, Kernel, coverage, implied_k,
-                   FcfModel, mean_of)
+                   covered_share, FcfModel, mean_of)
 import statistics as st
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "models", "frontline")
@@ -88,6 +88,31 @@ check_true("Dropping the newest week lowers at least one locked share",
 far = max(V).year + 2
 check("A quarter with no feed weeks yet reports zero locked",
       kv.quarter(V, f"{far}Q2")[1], 0.0, 0.0001)
+
+
+# ---- covered share -------------------------------------------------------
+# The panel's one number. covered = elapsed + phi * (1 - elapsed), phi solved
+# from all 18 disclosures. Structural, so it does not need re-pinning.
+PHI = CFG["coverage_estimate"]["phi"]
+check("phi is the full-sample mean of the 18 disclosures", PHI, 0.447, 0.001)
+check("Covered at quarter start equals phi", covered_share(dt(2026,10,1), "2026Q4", PHI), PHI, 1e-9)
+check("Covered on the last day is ~1", covered_share(dt(2026,12,31), "2026Q4", PHI), 1.0, 0.012)
+check_true("Covered is undefined before the quarter starts",
+           covered_share(dt(2026,9,30), "2026Q4", PHI) is None)
+check_true("Covered rises every day through the quarter",
+           all(covered_share(dt(2026,10,1)+timedelta(days=i), "2026Q4", PHI)
+               < covered_share(dt(2026,10,1)+timedelta(days=i+1), "2026Q4", PHI)
+               for i in range(90)))
+# Reproduces the disclosures it was fitted to: mean error across all 18 is zero
+# by construction, so the test is that the SPREAD is what we measured.
+errs = []
+for r in quarterly:
+    y, n = (int(r["quarter"][:4]) + 1, 1) if r["quarter"][-1] == "4" \
+           else (int(r["quarter"][:4]), int(r["quarter"][-1]) + 1)
+    c = covered_share(dt.fromisoformat(r["report_date"]), f"{y}Q{n}", PHI)
+    errs.append(c * 100 - int(r["vlcc_next_cov_pct"]))
+check("Covered vs the 18 disclosures, mean error", st.mean(errs), 0.0, 0.3, "pts")
+check("Covered vs the 18 disclosures, mean abs error", st.mean([abs(e) for e in errs]), 3.85, 0.05, "pts")
 
 tce_s, _ = ks.quarter(S, "2026Q3")
 check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")

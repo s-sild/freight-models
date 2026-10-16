@@ -35,10 +35,22 @@ and the unsettled ones stay visible.
   $1.4m/day prints there is no basis for claiming ±6–8% still holds.
 - **Three methods disagree on 2026Q3, unresolved.** Coverage $141,000 · kernel
   $158,186 · DHT-implied $162,452. Not a parameter problem — coverage gives
-  $135k–$148k across the entire historical k range. Likeliest explanation: no
-  quarter in the sample saw an intra-quarter rise like Q3-26, so uncovered days
-  may earn a higher fraction than history shows. Hypothesis, not finding.
-  **30 November settles it.**
+  $135k–$148k across the entire historical k range.
+
+  Suspected mechanism, and it is about ballast. The two models treat a
+  quarter's unfixed tail differently. The kernel handles ballast as **timing
+  only**: a week's rate lands on days D+a onward, so ballast days earn nothing,
+  but every day that does earn gets the full index. The coverage model handles
+  it as a **drag**: uncovered days earn k = 0.27 of the contracted rate,
+  calibrated across 17 quarters. On the ~14% of Q3 still unbooked at the report
+  date, the kernel says "index, lagged" and coverage says "a quarter of it".
+  The kernel being the higher of the two is exactly what that predicts.
+
+  Hypothesis, not finding. The earlier candidate — that no quarter in the
+  sample saw an intra-quarter rise like Q3-26, so uncovered days may earn a
+  higher fraction than history shows — is still live, and the two are not
+  separable with one observation. **30 November settles it**: if realised lands
+  near $141k the kernel needs a drag term on its unlocked portion.
 - **The locked share is not Frontline's coverage, and it is not a confidence
   measure.** Two separate findings from 16 Oct 2026, both against all 18
   disclosures (`report_date` now carries the publication date of each).
@@ -137,6 +149,14 @@ replace the row and re-pin those tests.
 5. **The locked share counts every week that feeds a quarter, published or not.**
    Dividing by weeks present in the data returns ~100% by construction. This was
    a real bug: it reported 2026Q4 as 94% locked against a true 62%.
-6. **One number per question on the dashboard.** It is read on the move, where a
+6. **The panel shows covered, never locked.** `covered = elapsed + phi(1-elapsed)`,
+   phi = 0.447 from the 18 disclosures, reproducing them to 3.85 points mean
+   absolute error. It is what Frontline itself reports, so 30 November can
+   check it. The kernel's locked share stays inside the kernel as a weight and
+   is never displayed: it has no company meaning, and forecast error does not
+   fall as it rises. Note it was never used in the TCE arithmetic either —
+   `tce = Σ(w·rate)/Σw` over published weeks — it was only ever a display
+   output we mistook for a diagnostic.
+7. **One number per question on the dashboard.** It is read on the move, where a
    second number next to the first costs more than it adds. Detail lives here
    and in the forecast table. Do not re-add a "helpful" shadow figure.

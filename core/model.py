@@ -151,6 +151,33 @@ class Kernel:
 # 3. coverage model
 # --------------------------------------------------------------------------
 
+def covered_share(asof, q, phi):
+    """
+    Estimated share of quarter `q` already fixed, as of date `asof`.
+
+        covered = elapsed + phi * (1 - elapsed)
+
+    Elapsed days are covered by definition - the voyages happened. Of the days
+    remaining, phi is already on subs or fixed. phi is solved from Frontline's
+    own disclosures; see config coverage_estimate for why the full sample is
+    used rather than the recent regime.
+
+    This is NOT the kernel's locked share. The kernel asks whether the index
+    for a day has printed. This asks whether a fixture exists against it -
+    which is what Frontline reports, and so what 30 November can check.
+
+    Returns None before the quarter starts: phi is observed only at day ~57 of
+    a running quarter and says nothing about one that has not begun.
+    """
+    qs, qe = quarter_bounds(q)
+    if asof < qs:
+        return None
+    if asof >= qe:
+        return 1.0
+    elapsed = (asof - qs).days / (qe - qs).days
+    return elapsed + phi * (1 - elapsed)
+
+
 def coverage(contracted, covered_pct, k):
     """
     At the report date `covered_pct` of the quarter's days are contracted at
