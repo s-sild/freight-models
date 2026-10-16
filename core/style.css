@@ -52,8 +52,15 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
   border-radius: 10px; padding: 14px 16px;
 }
 .card.full { grid-column: 1 / -1; }
-.card.wide { grid-column: span 2; }
-@media (max-width: 620px) { .card.wide { grid-column: span 1; } }
+.tiles3 { display: grid; gap: 12px; grid-template-columns: 0.75fr 1.5fr 0.75fr; align-items: start; }
+.tiles3 .mid { grid-column: 2; grid-row: 1 / span 2; }
+@media (max-width: 860px) {
+  .tiles3 { grid-template-columns: 1fr; }
+  .tiles3 .mid { grid-column: 1; grid-row: auto; }
+}
+.seg { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+       color: var(--text-muted); font-weight: 600; margin: 16px 0 8px; }
+.seg:first-of-type { margin-top: 0; }
 .card h2 {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
   color: var(--text-muted); margin: 0 0 10px; font-weight: 600;
@@ -110,3 +117,8 @@ button.preset {
 button.preset:hover { color: var(--text-primary); }
 .placeholder { border-style: dashed; }
 a { color: var(--series-1); }
+
+/* the route table lives in a narrower column — keep labels on one line */
+#routes { font-size: 12.5px; }
+#routes th, #routes td { padding: 5px 4px; white-space: nowrap; }
+#routes td.t { padding-right: 10px; }

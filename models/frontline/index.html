@@ -14,7 +14,7 @@
   </header>
   <p class="asof" id="asof">loading…</p>
 
-  <div class="grid" id="tiles"></div>
+  <div class="tiles3" id="tiles"></div>
 
   <div class="card full" style="margin-top:12px">
     <h2>Benchmark spot, company-equivalent</h2>
@@ -115,6 +115,21 @@ const d = (v) => `<span class="delta ${v>=0?"up":"down"}">${fmt.signed(v)}</span
 document.getElementById("asof").textContent =
   `Baltic to ${fmt.date(tV)} · Fearnleys ${tc.week_ending} · close ${fmt.usd2(close)} on ${price.date}`;
 
+// ---- tiles: four at the sides, one tall column in the middle ------------
+const atl = r => { const a = num(r.TD15), b = num(r.TD22); return a && b ? (a + b) / 2 : null; };
+const byWeek = new Map(baltic.map(r => [r.week_ending, r]));
+const pick = back => {
+  const d = new Date(tV - back * 7 * DAY).toISOString().slice(0, 10);
+  return [d, byWeek.get(d)];
+};
+// oldest to newest, left to right — time runs the same way as the chart
+const cols = [pick(4), pick(3), pick(2), pick(1), pick(0)];
+const ROUTES = [
+  ["TD3C", "MEG→China"],     ["TD15", "W.Afr→China"],
+  ["TD22", "USG→China"], ["TD20", "W.Afr→UKC"],
+  ["TD27", "Guyana→UKC"],    ["TD33", "USG→UKC"],
+];
+
 document.getElementById("tiles").innerHTML = `
 <div class="card">
   <h2>Spot, company-equivalent</h2>
@@ -124,21 +139,15 @@ document.getElementById("tiles").innerHTML = `
   <div class="sub2">Suezmax</div>
 </div>
 
-<div class="card">
-  <h2>${nextQ} — already locked</h2>
-  <div class="hero">${fmt.pct(qV.observed,0)}</div>
-  <div class="sub2">of the quarter fixed by published weeks</div>
-  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, locked days</span><span>${fmt.usd(qV.tce)}</span></div>
-  <div class="rowline"><span class="muted">Suezmax, locked days</span><span>${fmt.usd(qS.tce)}</span></div>
-  <p class="note">Earning-days already fixed by published Baltic weeks.</p>
-</div>
-
-<div class="card">
-  <h2>Forward market — 1-yr T/C</h2>
+<div class="card mid">
+  <div class="seg">Forward market — 1-yr T/C</div>
   <div class="rowline"><span class="muted">VLCC</span><span>${fmt.usd(tcV)}</span></div>
   <div class="rowline"><span class="muted">Suezmax</span><span>${fmt.usd(tcS)}</span></div>
   <div class="rowline"><span class="muted">Aframax</span><span>${fmt.usd(tcA)}</span></div>
-  <p class="note">A full year fixed today. Both segments priced ${fmt.signed(tcV/vV-1,0)} against spot.</p>
+  <div class="rowline"><span class="muted">Suezmax ÷ VLCC</span><span>${(tcS/tcV).toFixed(3)}</span></div>
+
+  <div class="seg">Baltic routes</div>
+  <table id="routes"></table>
 </div>
 
 <div class="card">
@@ -151,48 +160,35 @@ document.getElementById("tiles").innerHTML = `
 </div>
 
 <div class="card">
+  <h2>${nextQ} — already locked</h2>
+  <div class="hero">${fmt.pct(qV.observed,0)}</div>
+  <div class="sub2">of the quarter fixed by published weeks</div>
+  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, locked days</span><span>${fmt.usd(qV.tce)}</span></div>
+  <div class="rowline"><span class="muted">Suezmax, locked days</span><span>${fmt.usd(qS.tce)}</span></div>
+  <p class="note">Earning-days already fixed by published Baltic weeks.</p>
+</div>
+
+<div class="card">
   <h2>The gap</h2>
   <div class="hero">${fmt.pct(yieldTC)}</div>
   <div class="sub2">FCF yield if the 1-yr T/C held for 12 months</div>
   <div class="rowline" style="margin-top:8px"><span class="muted">FCF / share</span><span>${fmt.usd2(fpsTC)}</span></div>
   <div class="rowline"><span class="muted">price @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd2(fpsTC/cfg.required_yields.base)}</span></div>
   <p class="note">${fmt.usd(tcV)} on offer against the ${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)} the price needs. Before any fleet-age haircut.</p>
-</div>
-
-<div class="card wide">
-  <h2>Baltic routes</h2>
-  <table id="routes"></table>
-</div>
-
-<div class="card">
-  <h2>Next catalyst</h2>
-  <div class="hero">${daysTo}<span style="font-size:15px;color:var(--text-muted);margin-left:6px">days</span></div>
-  <div class="sub2">Q3 results, ${cfg.reporting.next_report}</div>
-  <p class="note">Settles the 2026Q3 disagreement in notes.md.</p>
 </div>`;
 
-// ---- route table: level now, a week ago, four weeks ago ----------------
-// Three readings, no deltas — the direction is visible from the levels.
-const ROUTES = [
-  ["TD3C", "MEG → China"],        ["TD15", "W.Africa → China"],
-  ["TD22", "US Gulf → China"],    ["TD20", "W.Africa → UKC"],
-  ["TD27", "Guyana → UKC"],       ["TD33", "US Gulf → UKC"],
-];
-{
-  const byWeek = new Map(baltic.map(r => [r.week_ending, r]));
-  const pick = back => {
-    const d = new Date(tV - back * 7 * DAY).toISOString().slice(0, 10);
-    return [d, byWeek.get(d)];
-  };
-  // oldest to newest, left to right — time runs the same way as the chart
-  const cols = [pick(4), pick(1), pick(0)];
-  document.getElementById("routes").innerHTML =
-    `<tr><th class="t">Route</th>${cols.map(([d]) => `<th>${d}</th>`).join("")}</tr>` +
-    ROUTES.map(([code, lane]) => `<tr>
-      <td class="t">${code} <span class="muted">${lane}</span></td>
-      ${cols.map(([, r]) => `<td>${r ? fmt.usd(num(r[code])) : "—"}</td>`).join("")}
-    </tr>`).join("");
-}
+// route table, plus the Hormuz premium on the same dates
+document.getElementById("routes").innerHTML =
+  `<tr><th class="t">Route</th>${cols.map(([d]) => `<th>${d.slice(5)}</th>`).join("")}</tr>` +
+  ROUTES.map(([code, lane]) => `<tr>
+    <td class="t">${code} <span class="muted">${lane}</span></td>
+    ${cols.map(([, r]) => `<td>${r ? fmt.usd(num(r[code])) : "—"}</td>`).join("")}
+  </tr>`).join("") +
+  `<tr style="font-weight:600"><td class="t">TD3C ÷ Atl avg</td>${
+    cols.map(([, r]) => {
+      const a = r ? atl(r) : null, t = r ? num(r.TD3C) : null;
+      return `<td>${a && t ? (t/a).toFixed(2) + "×" : "—"}</td>`;
+    }).join("")}</tr>`;
 
 // ---- charts --------------------------------------------------------------
 // Default view is the last 24 months. The full series back to 2022 stays in the
