@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontline — freight to earnings</title>
+<link rel="stylesheet" href="../../core/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>Frontline plc</h1>
+    <span class="sub">freight rates → recognised earnings → implied price</span>
+  </header>
+  <p class="asof" id="asof">loading…</p>
+
+  <div class="grid" id="tiles"></div>
+
+  <div class="card full" style="margin-top:12px">
+    <h2>Benchmark spot, company-equivalent</h2>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--series-1)"></span>VLCC</span>
+      <span><span class="sw" style="background:var(--series-2)"></span>Suezmax</span>
+      <span class="muted" style="margin-left:auto">log scale · $/day</span>
+    </div>
+    <div id="chart-spot"></div>
+    <p class="note" id="note-spot"></p>
+  </div>
+
+  <div class="card full" style="margin-top:12px">
+    <h2>What the market pays for Frontline's own base case</h2>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--series-1)"></span>implied FCF yield on $10.35/share</span>
+    </div>
+    <div id="chart-yield"></div>
+    <p class="note" id="note-yield"></p>
+  </div>
+
+  <div class="card full" style="margin-top:12px">
+    <h2>Forecast — set the forward curve</h2>
+    <div class="ctls" id="ctls"></div>
+    <div class="ctls" style="margin-top:-4px">
+      <button class="preset" data-preset="hold">Hold at last week</button>
+      <button class="preset" data-preset="tc">At 1-yr T/C</button>
+      <button class="preset" data-preset="base">At base case</button>
+    </div>
+    <table id="fc"></table>
+    <p class="note">Weeks already published are fixed and cannot be overridden — the anchors only drive
+      weeks beyond the last Baltic report. Each quarter's share already locked is shown as “observed”.</p>
+  </div>
+
+  <div class="card full placeholder" style="margin-top:12px">
+    <h2>NAV — placeholder</h2>
+    <p class="sub2">Needs <code>data/fleet.csv</code>: vessel, segment, build year. The broker value curve is
+      already seeded in <code>data/vessel_values.csv</code>.</p>
+    <table id="navcurve"></table>
+    <p class="note">The age curve collapsed between July and September 2026 — 15-year values rose 62% against
+      18% for 5-year hulls, as buyers paid for immediate availability. Frontline's Euronav tonnage skews old,
+      so NAV is levered to the end of the curve that moved most. Sizing that is the open question for the position.</p>
+  </div>
+
+  <p class="note" style="margin-top:20px">
+    Every figure traces to a CSV row with a source column. Parameters and their justification live in
+    <code>config.json</code>; what is settled, weak, or retracted is in <code>notes.md</code>.
+    The Python side carries 25 acceptance tests — if these numbers and those disagree, Python is right.
+  </p>
+</div>
+
+<script type="module">
+import { parseCSV, num, blend, kernelQuarter, FcfModel, fmt } from "../../core/model.js";
+import { lineChart } from "../../core/viz.js";
+
+const DAY = 86400000;
+const get = async f => parseCSV(await (await fetch(f)).text());
+const ts = d => Date.parse(d + "T00:00:00Z");
+const S1 = getComputedStyle(document.documentElement).getPropertyValue("--series-1").trim();
+const S2 = getComputedStyle(document.documentElement).getPropertyValue("--series-2").trim();
+
+const cfg = await (await fetch("config.json")).json();
+const [baltic, tcw, px, quarterly, vvals] = await Promise.all(
+  ["data/baltic_weekly.csv","data/tc_weekly.csv","data/price.csv",
+   "data/fro_quarterly.csv","data/vessel_values.csv"].map(get));
+
+// ---- observed benchmark series ------------------------------------------
+const mk = seg => baltic
+  .map(r => [ts(r.week_ending), blend(r, cfg.blend[seg])])
+  .filter(p => Number.isFinite(p[0]))
+  .sort((a,b) => a[0]-b[0]);
+const V = mk("vlcc"), S = mk("smax");
+const lastWith = s => [...s].reverse().find(p => p[1] !== null);
+const [tV, vV] = lastWith(V), [, vS] = lastWith(S);
+const prevOf = (s, t) => { const i = s.findIndex(p => p[0] === t); for (let j=i-1;j>=0;j--) if (s[j][1]!==null) return s[j][1]; };
+const wowV = vV / prevOf(V, tV) - 1, wowS = vS / prevOf(S, tV) - 1;
+
+const tc = tcw.at(-1);
+const price = px.filter(r => num(r.close) !== null).at(-1);
+const close = num(price.close);
+const m = new FcfModel(cfg.fcf);
+
+// ---- next quarter, locked share -----------------------------------------
+const nextQ = cfg.quarters_12m[0];
+const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
+const qV = kernelQuarter(V, nextQ, kv), qS = kernelQuarter(S, nextQ, ks);
+
+// ---- forward market ------------------------------------------------------
+const tcV = num(tc.vlcc_1yr_tc), tcS = num(tc.smax_1yr_tc), tcA = num(tc.afra_1yr_tc);
+const tcRates = { vlcc: tcV/1000, smax: tcS/1000, lr2: tcA/1000 };
+const fpsTC = m.fcfPerShare(tcRates);
+const yieldTC = fpsTC / close;
+const daysTo = Math.round((Date.parse(cfg.reporting.next_report) - Date.now()) / DAY);
+
+// ---- tiles ---------------------------------------------------------------
+const d = (v) => `<span class="delta ${v>=0?"up":"down"}">${fmt.signed(v)}</span>`;
+document.getElementById("asof").textContent =
+  `Baltic to ${fmt.date(tV)} · Fearnleys ${tc.week_ending} · close ${fmt.usd2(close)} on ${price.date}`;
+
+document.getElementById("tiles").innerHTML = `
+<div class="card">
+  <h2>Spot, company-equivalent</h2>
+  <div class="hero">${fmt.k(vV)}<span class="delta ${wowV>=0?"up":"down"}" style="font-size:14px;margin-left:8px">${fmt.signed(wowV)}</span></div>
+  <div class="sub2">VLCC · ${cfg.blend.vlcc.premium_weight*100}% MEG weight</div>
+  <div class="hero sm" style="margin-top:10px">${fmt.k(vS)}<span class="delta ${wowS>=0?"up":"down"}" style="font-size:14px;margin-left:8px">${fmt.signed(wowS)}</span></div>
+  <div class="sub2">Suezmax</div>
+</div>
+
+<div class="card">
+  <h2>${nextQ} — already locked</h2>
+  <div class="hero">${fmt.pct(qV.observed,0)}</div>
+  <div class="sub2">of the quarter fixed by published weeks</div>
+  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC</span><span>${fmt.usd(qV.tce)}</span></div>
+  <div class="rowline"><span class="muted">Suezmax</span><span>${fmt.usd(qS.tce)}</span></div>
+  <p class="note">Rest depends on the forward curve below.</p>
+</div>
+
+<div class="card">
+  <h2>Forward market — 1-yr T/C</h2>
+  <div class="rowline"><span class="muted">VLCC</span><span>${fmt.usd(tcV)}</span></div>
+  <div class="rowline"><span class="muted">Suezmax</span><span>${fmt.usd(tcS)}</span></div>
+  <div class="rowline"><span class="muted">Aframax</span><span>${fmt.usd(tcA)}</span></div>
+  <p class="note">Priced fade from spot: VLCC ${fmt.signed(tcV/vV-1,0)}, Suezmax ${fmt.signed(tcS/vS-1,0)}.
+  Both segments to roughly the same place — the only market-priced point on the curve.</p>
+</div>
+
+<div class="card">
+  <h2>What the price implies</h2>
+  <div class="hero">${fmt.pct(m.impliedYieldOnBase(close))}</div>
+  <div class="sub2">FCF yield on the published base case</div>
+  <div class="rowline" style="margin-top:8px"><span class="muted">12m VLCC @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)}</span></div>
+  <div class="rowline"><span class="muted">12m VLCC @ ${fmt.pct(cfg.required_yields.alt,0)}</span><span>${fmt.usd(m.impliedRate(close, cfg.required_yields.alt)*1000)}</span></div>
+</div>
+
+<div class="card">
+  <h2>The gap</h2>
+  <div class="hero">${fmt.pct(yieldTC)}</div>
+  <div class="sub2">FCF yield if the 1-yr T/C held for 12 months</div>
+  <div class="rowline" style="margin-top:8px"><span class="muted">FCF / share</span><span>${fmt.usd2(fpsTC)}</span></div>
+  <div class="rowline"><span class="muted">price @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd2(fpsTC/cfg.required_yields.base)}</span></div>
+  <p class="note">Before any fleet-quality haircut — the T/C quote is for modern eco/scrubber tonnage.</p>
+</div>
+
+<div class="card">
+  <h2>Next catalyst</h2>
+  <div class="hero">${daysTo}<span style="font-size:15px;color:var(--text-muted);margin-left:6px">days</span></div>
+  <div class="sub2">Q3 results, ${cfg.reporting.next_report}</div>
+  <p class="note">Settles the three-way disagreement on 2026Q3 recorded in notes.md.</p>
+</div>`;
+
+// ---- charts --------------------------------------------------------------
+// Default view is the last 24 months. The full series back to 2022 stays in the
+// CSV — it is what the kernel back-test runs on — but four years of history on
+// one axis is noise for reading where rates are now.
+const WINDOW_MONTHS = 24;
+const cutoff = tV - WINDOW_MONTHS * 30.44 * DAY;
+const win = s => s.filter(p => p[0] >= cutoff);
+
+lineChart(document.getElementById("chart-spot"), {
+  height: 240, log: true,
+  fmtY: v => v >= 1e6 ? "$" + (v/1e6).toFixed(1) + "m" : "$" + (v/1000).toFixed(0) + "k",
+  ariaLabel: "Company-equivalent VLCC and Suezmax spot rates, 2022 to present, log scale",
+  series: [{ name: "VLCC", color: S1, points: win(V) }, { name: "Suezmax", color: S2, points: win(S) }],
+});
+document.getElementById("note-spot").textContent =
+  `Last ${WINDOW_MONTHS} months shown; ${V.filter(p=>p[1]!==null).length} weeks held back to 2022 for the back-test. VLCC = (1 − MEG weight) × mean(${cfg.blend.vlcc.atlantic.join(", ")}) + MEG weight × ${cfg.blend.vlcc.premium}. Suezmax = mean(${cfg.blend.smax.atlantic.join(", ")}).`;
+
+const ySeries = px.filter(r => num(r.close)).map(r => [ts(r.date), m.baseFps / num(r.close)]);
+lineChart(document.getElementById("chart-yield"), {
+  height: 180, fmtY: v => (v*100).toFixed(0) + "%",
+  ariaLabel: "Implied free cash flow yield on Frontline's published base case",
+  series: [{ name: "implied yield", color: S1, points: ySeries }],
+});
+document.getElementById("note-yield").textContent =
+  `On 28 August 2026 — the day the cash-generation slide was published — FRO closed at $41.40 against its own $10.35 base-case FCF per share: a 25.0% cap rate. That is where the ${fmt.pct(cfg.required_yields.base,0)} required yield comes from. Since then the market has moved to ${fmt.pct(m.impliedYieldOnBase(close))}, which is either a re-rating or a higher rate expectation — this model cannot tell them apart.`;
+
+// ---- forecast ------------------------------------------------------------
+const ANCH = [0, 13, 26, 52];                       // weeks from last observed
+const state = { v: [vV, vV, vV, vV].map(x => Math.round(x/1000)), ratio: +(vS/vV).toFixed(3) };
+
+document.getElementById("ctls").innerHTML =
+  ANCH.map((w,i) => `<label class="ctl">VLCC ${w===0?"now":"+"+w+"w"} ($k/day)
+    <input type="number" data-i="${i}" value="${state.v[i]}" step="10"></label>`).join("") +
+  `<label class="ctl">Suezmax ÷ VLCC<input type="number" id="ratio" value="${state.ratio}" step="0.01"></label>`;
+
+function curve() {
+  const out = [];
+  for (let w = 1; w <= 72; w++) {
+    let i = ANCH.findIndex((a, j) => w <= a && j > 0);
+    if (i < 0) i = ANCH.length - 1;
+    const a0 = ANCH[i-1] ?? 0, a1 = ANCH[i];
+    const f = a1 === a0 ? 1 : (w - a0) / (a1 - a0);
+    const v = (state.v[i-1] ?? state.v[0]) + f * (state.v[i] - (state.v[i-1] ?? state.v[0]));
+    out.push([tV + w*7*DAY, v*1000]);
+  }
+  return out;
+}
+
+function render() {
+  const fwd = curve();
+  const Vf = [...V, ...fwd];
+  const Sf = [...S, ...fwd.map(([t,v]) => [t, v*state.ratio])];
+  let rows = `<tr><th>Quarter</th><th>observed</th><th>VLCC</th><th>Suezmax</th>
+    <th>FCF/sh</th><th>@${fmt.pct(cfg.required_yields.base,0)}</th><th>@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
+  const blend12 = {}; let wsum = 0;
+  for (const q of cfg.quarters_12m) {
+    const a = kernelQuarter(Vf, q, kv), b = kernelQuarter(Sf, q, ks);
+    a.observed = kernelQuarter(V, q, kv).observed;   // published weeks only
+    const r = { vlcc: a.tce/1000, smax: b.tce/1000, lr2: (a.tce/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
+    const fps = m.fcfPerShare(r);
+    const dq = cfg.vlcc_spot_days_by_quarter[q] || 0;
+    wsum += dq; blend12.v = (blend12.v||0) + a.tce*dq; blend12.s = (blend12.s||0) + b.tce*dq;
+    rows += `<tr><td>${q}</td><td>${fmt.pct(a.observed,0)}</td><td>${fmt.usd(a.tce)}</td>
+      <td>${fmt.usd(b.tce)}</td><td>${fmt.usd2(fps)}</td>
+      <td>${fmt.usd2(fps/cfg.required_yields.base)}</td><td>${fmt.usd2(fps/cfg.required_yields.alt)}</td></tr>`;
+  }
+  const r12 = { vlcc: blend12.v/wsum/1000, smax: blend12.s/wsum/1000,
+                lr2: (blend12.v/wsum/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
+  const f12 = m.fcfPerShare(r12);
+  rows += `<tr style="font-weight:600"><td>12-month</td><td class="muted">day-weighted</td>
+    <td>${fmt.usd(blend12.v/wsum)}</td><td>${fmt.usd(blend12.s/wsum)}</td><td>${fmt.usd2(f12)}</td>
+    <td>${fmt.usd2(f12/cfg.required_yields.base)}</td><td>${fmt.usd2(f12/cfg.required_yields.alt)}</td></tr>
+    <tr><td class="muted">vs close ${fmt.usd2(close)}</td><td colspan="4"></td>
+    <td class="${f12/cfg.required_yields.base>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.base/close-1,0)}</td>
+    <td class="${f12/cfg.required_yields.alt>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.alt/close-1,0)}</td></tr>`;
+  document.getElementById("fc").innerHTML = rows;
+}
+
+document.getElementById("ctls").addEventListener("input", e => {
+  if (e.target.id === "ratio") state.ratio = +e.target.value;
+  else state.v[+e.target.dataset.i] = +e.target.value;
+  render();
+});
+document.querySelectorAll("button.preset").forEach(b => b.addEventListener("click", () => {
+  // The 1-yr T/C is the market's price for the WHOLE 12 months, not an endpoint to
+  // glide toward — a linear fade to it still averages far above it. So each preset
+  // applies its level from the first unpublished week.
+  const lvl = { hold: Math.round(vV/1000), tc: Math.round(tcV/1000),
+                base: cfg.fcf.base_rates_kusd_day.vlcc }[b.dataset.preset];
+  state.v = [lvl, lvl, lvl, lvl];
+  state.ratio = b.dataset.preset === "hold" ? +(vS/vV).toFixed(3)
+              : b.dataset.preset === "tc" ? +(tcS/tcV).toFixed(3)
+              : +(cfg.fcf.base_rates_kusd_day.smax/cfg.fcf.base_rates_kusd_day.vlcc).toFixed(3);
+  document.querySelectorAll("#ctls input[data-i]").forEach((el,i) => el.value = state.v[i]);
+  document.getElementById("ratio").value = state.ratio;
+  render();
+}));
+
+// Default to the market-priced anchor. A flat hold of a spike week is not a
+// neutral starting point — it is the most aggressive assumption available.
+document.querySelector('button.preset[data-preset="tc"]').click();
+
+// ---- NAV placeholder table ----------------------------------------------
+const byDate = {};
+for (const r of vvals) (byDate[r.as_of] ||= []).push(r);
+const dates = Object.keys(byDate).sort();
+const ages = [...new Set(vvals.map(r => +r.age_years))].sort((a,b)=>a-b);
+document.getElementById("navcurve").innerHTML =
+  `<tr><th>VLCC age</th>${dates.map(d=>`<th>${d}</th>`).join("")}<th>change</th></tr>` +
+  ages.map(a => {
+    const vals = dates.map(d => num((byDate[d].find(r => +r.age_years === a)||{}).value_musd));
+    const ch = vals[0] && vals.at(-1) ? vals.at(-1)/vals[0]-1 : null;
+    return `<tr><td>${a} years</td>${vals.map(v=>`<td>${v===null?"—":"$"+v+"m"}</td>`).join("")}
+      <td class="${ch>=0?"up":"down"}">${fmt.signed(ch,0)}</td></tr>`;
+  }).join("");
+</script>
+</body>
+</html>

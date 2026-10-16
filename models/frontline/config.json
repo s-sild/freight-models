@@ -1,0 +1,53 @@
+{
+  "name": "Frontline plc",
+  "ticker": "FRO",
+  "currency": "USD",
+
+  "reporting": {
+    "next_report": "2026-11-30",
+    "weekly_sources": [
+      {"day": "Friday",    "name": "Baltic Exchange weekly tanker report", "file": "data/baltic_weekly.csv"},
+      {"day": "Wednesday", "name": "Fearnleys weekly",                     "file": "data/tc_weekly.csv"}
+    ]
+  },
+
+  "blend": {
+    "vlcc":  {"atlantic": ["TD15", "TD22"], "premium": "TD3C", "premium_weight": 0.12, "factor": 1.0,
+              "note": "MEG weight solved from reported TCE: 10% in 2026Q2, 15% in 2026Q3. 12% adopted."},
+    "smax":  {"atlantic": ["TD20", "TD27", "TD33"], "factor": 1.0}
+  },
+
+  "kernel": {
+    "vlcc": {"a": 32, "b": 35, "factor": 1.05},
+    "smax": {"a": 25, "b": 30, "factor": 1.03},
+    "note": "Fitted on 2024Q1-2026Q2 reported TCEs. VLCC 32/35 CV 5.1%; the fit is flat between b=30 and b=40. Suezmax 25/30 CV 6.1%; the free fit was 12/98 at CV 3.6% but a 98-day window lags badly in a fast market, so the physical parameters are used. Suezmax remains the weakest parameter in the model."
+  },
+
+  "coverage": {
+    "k": 0.27,
+    "note": "Back-tested across 17 quarters of disclosure: implied k ranges -0.055 to +0.591, mean 0.297, median 0.275. 0.27 is effectively the median. The Q3-26 output is insensitive to it: $135k-$148k across the entire historical k range."
+  },
+
+  "fcf": {
+    "base_fcf_musd": 2305,
+    "base_fcf_per_share": 10.35,
+    "fcf_at_plus_30_musd": 3096,
+    "base_rates_kusd_day": {"vlcc": 140, "smax": 115, "lr2": 55},
+    "spot_days_12m":       {"vlcc": 10474, "smax": 7317.0, "lr2": 5979.0},
+    "source": "Frontline Q2 2026 'cash generation' slide, 28 August 2026"
+  },
+
+  "required_yields": {
+    "base": 0.24,
+    "alt": 0.20,
+    "note": "0.24 is not an assumption. On 28 August 2026, the day the slide was published, FRO closed at $41.40 against the slide's own $10.35 base-case FCF/share - a 25.0% cap rate. 24% sits a point inside that."
+  },
+
+  "quarters_12m": ["2026Q4", "2027Q1", "2027Q2", "2027Q3"],
+  "vlcc_spot_days_by_quarter": {"2026Q4": 2136, "2027Q1": 2309, "2027Q2": 3058, "2027Q3": 3468},
+
+  "nav": {
+    "status": "placeholder",
+    "note": "Needs fleet.csv (vessel, segment, build year) and a broker value curve. Xclusiv VLCC assessments 18 Sep 2026: 5yr $172m, 10yr $152m, 15yr $135m; newbuild ~$131-135m. Early July for comparison: $145m / $115m / $83.5m. The age curve has collapsed - buyers paying for immediate availability. Frontline's Euronav tonnage skews old, so NAV is levered to the end of the curve that moved most."
+  }
+}
