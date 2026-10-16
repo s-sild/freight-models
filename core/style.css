@@ -39,7 +39,17 @@ body {
   font: 15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   padding: 24px 16px 64px;
 }
+/* Reads 10% small at arm's length. zoom scales type, padding and widths
+   together — the same thing the browser's own 110% does — instead of growing
+   the text inside fixed-width columns. One number to tune. Applied to .wrap,
+   not body, so the fixed hero layer behind it is untouched. */
+:root { --ui-scale: 1.1; }
 .wrap { max-width: 1040px; margin: 0 auto; }
+/* Reads ~10% small at arm's length on a desktop. zoom scales type, padding and
+   column widths together, the way the browser's own 110% does, so nothing is
+   squeezed. Only above 1200px: below that the 1040px column is already the
+   constraint and the wider text clips the route table. One number to tune. */
+@media (min-width: 1200px) { .wrap { zoom: var(--ui-scale); } }
 
 header.page { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 4px; }
 header.page h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
