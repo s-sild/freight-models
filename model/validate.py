@@ -48,11 +48,28 @@ kv = Kernel(**{k: CFG["kernel"]["vlcc"][k] for k in ("a", "b", "factor")})
 ks = Kernel(**{k: CFG["kernel"]["smax"][k] for k in ("a", "b", "factor")})
 
 tce, obs = kv.quarter(V, "2026Q3")
-check("Kernel VLCC 2026Q3", tce, 156665, 400, "$/day")
+
+# These moved on 2026-10-16 because an INPUT changed, not the model: the week
+# ending 2026-08-14 was interpolated from its neighbours (its Baltic report was
+# never retrieved), and that week feeds 16 days of Q3. Against the Excel's
+# figures of 156,665 / 96,253, which were computed with the gap left open.
+# Only ever re-pin these when the inputs deliberately change - otherwise the
+# tests stop catching anything.
+check("Kernel VLCC 2026Q3", tce, 158186, 400, "$/day")
 check("Kernel VLCC 2026Q3 share observed", obs, 1.0, 0.001)
 
+# The share must be measured against every week that feeds the quarter,
+# published or not — otherwise an unpublished week is simply absent from the
+# series and the share reads ~1.0 whatever the truth.
+_, obs_q4 = kv.quarter(V, "2026Q4")
+_, obs_q4s = ks.quarter(S, "2026Q4")
+check("Kernel VLCC 2026Q4 share observed", obs_q4, 0.663, 0.01)
+check("Kernel Suezmax 2026Q4 share observed", obs_q4s, 0.558, 0.01)
+check("A quarter with no feed weeks yet reports zero observed",
+      kv.quarter(V, "2027Q2")[1], 0.0, 0.0001)
+
 tce_s, _ = ks.quarter(S, "2026Q3")
-check("Kernel Suezmax 2026Q3", tce_s, 96253, 400, "$/day")
+check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")
 
 
 # ---- kernel back-test ----------------------------------------------------
