@@ -159,12 +159,39 @@ document.getElementById("tiles").innerHTML = `
   <p class="note">${fmt.usd(tcV)} on offer against the ${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)} the price needs. Before any fleet-age haircut.</p>
 </div>
 
+<div class="card wide">
+  <h2>Baltic routes</h2>
+  <table id="routes"></table>
+</div>
+
 <div class="card">
   <h2>Next catalyst</h2>
   <div class="hero">${daysTo}<span style="font-size:15px;color:var(--text-muted);margin-left:6px">days</span></div>
   <div class="sub2">Q3 results, ${cfg.reporting.next_report}</div>
   <p class="note">Settles the 2026Q3 disagreement in notes.md.</p>
 </div>`;
+
+// ---- route table: level now, a week ago, four weeks ago ----------------
+// Three readings, no deltas — the direction is visible from the levels.
+const ROUTES = [
+  ["TD3C", "MEG → China"],        ["TD15", "W.Africa → China"],
+  ["TD22", "US Gulf → China"],    ["TD20", "W.Africa → UKC"],
+  ["TD27", "Guyana → UKC"],       ["TD33", "US Gulf → UKC"],
+];
+{
+  const byWeek = new Map(baltic.map(r => [r.week_ending, r]));
+  const pick = back => {
+    const d = new Date(tV - back * 7 * DAY).toISOString().slice(0, 10);
+    return [d, byWeek.get(d)];
+  };
+  const cols = [pick(0), pick(1), pick(4)];
+  document.getElementById("routes").innerHTML =
+    `<tr><th class="t">Route</th>${cols.map(([d]) => `<th>${d}</th>`).join("")}</tr>` +
+    ROUTES.map(([code, lane]) => `<tr>
+      <td class="t">${code} <span class="muted">${lane}</span></td>
+      ${cols.map(([, r]) => `<td>${r ? fmt.usd(num(r[code])) : "—"}</td>`).join("")}
+    </tr>`).join("");
+}
 
 // ---- charts --------------------------------------------------------------
 // Default view is the last 24 months. The full series back to 2022 stays in the
