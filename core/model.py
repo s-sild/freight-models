@@ -90,7 +90,11 @@ class Kernel:
     over [D+a, D+a+b). A quarter's TCE is the weighted mean of weekly rates,
     weighted by how many earning-days land inside it.
 
-    `factor` converts the market benchmark to what this owner actually reports.
+    No benchmark-to-owner conversion happens here. That uplift belongs on the
+    observed weeks at series construction - see uplift() - because a forecast
+    anchor the user types is already an owner-level rate and marking it up
+    again double-counts. `factor` stays 1.0 and survives only so a caller with
+    a genuine per-kernel scale could still pass one.
     """
     a: int
     b: int
@@ -150,6 +154,15 @@ class Kernel:
 # --------------------------------------------------------------------------
 # 3. coverage model
 # --------------------------------------------------------------------------
+
+def uplift(series, f):
+    """
+    Scale a benchmark series {date: rate} to owner-realised terms. OBSERVED
+    weeks only: a forecast anchor the user types is already owner-level, and
+    marking it up again was the 140 -> 147 bug.
+    """
+    return {d: (None if v is None else v * f) for d, v in series.items()}
+
 
 def covered_share(asof, q, phi):
     """

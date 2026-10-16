@@ -17,9 +17,15 @@
     "smax":  {"atlantic": ["TD20", "TD27", "TD33"], "factor": 1.0}
   },
 
+  "realised_uplift": {
+    "vlcc": 1.05,
+    "smax": 1.03,
+    "note": "Converts the Baltic benchmark into what Frontline actually reports. Applied at SERIES CONSTRUCTION, to observed weeks only, never inside the kernel. Applied in the kernel it also marked up typed forecast anchors, so 'At base case' turned the slide's own 140 into 147 and returned $10.94/share against the slide's own $10.35. Consequence: every rate in the forecast section is a Frontline-realised rate, not a benchmark."
+  },
+
   "kernel": {
-    "vlcc": {"a": 32, "b": 35, "factor": 1.05},
-    "smax": {"a": 25, "b": 30, "factor": 1.03},
+    "vlcc": {"a": 32, "b": 35},
+    "smax": {"a": 25, "b": 30},
     "note": "Fitted on 2024Q1-2026Q2 reported TCEs. VLCC 32/35 CV 5.1%; the fit is flat between b=30 and b=40. Suezmax 25/30 CV 6.1%; the free fit was 12/98 at CV 3.6% but a 98-day window lags badly in a fast market, so the physical parameters are used. Suezmax remains the weakest parameter in the model."
   },
 

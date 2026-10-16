@@ -78,6 +78,14 @@ export function kernelQuarter(series, q, { a, b, factor = 1 }) {
   return { tce: (acc / known) * factor, locked: known / total };
 }
 
+/**
+ * Scale a benchmark series [[ms, rate], ...] to owner-realised terms. Observed
+ * weeks only — a forecast anchor the user types is already owner-level, and
+ * marking it up again was the 140 -> 147 bug.
+ */
+export const uplift = (series, f) =>
+  series.map(([t, v]) => [t, v === null ? null : v * f]);
+
 // --- 3a. covered share ------------------------------------------------------
 /**
  * Estimated share of quarter q already fixed as of `asof` (ms timestamp):

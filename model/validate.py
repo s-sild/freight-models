@@ -9,7 +9,7 @@ import sys, os, json
 from datetime import datetime, date as dt, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "core"))
 from model import (read_csv, num, blend, Kernel, coverage, implied_k,
-                   covered_share, FcfModel, mean_of)
+                   covered_share, uplift, FcfModel, mean_of)
 import statistics as st
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "models", "frontline")
@@ -40,7 +40,13 @@ def series(seg):
             out[datetime.strptime(r["week_ending"], "%Y-%m-%d").date()] = v
     return out
 
-V, S = series("vlcc"), series("smax")
+V, S = series("vlcc"), series("smax")          # raw Baltic benchmark
+
+# Owner-realised terms, applied HERE and not in the kernel. A forecast anchor
+# the user types is already owner-level; marking it up again turned the base
+# case's 140 into 147. See config realised_uplift.
+UP = CFG["realised_uplift"]
+VU, SU = uplift(V, UP["vlcc"]), uplift(S, UP["smax"])
 
 # Pinned to the DATE, not to max(V). These were `max(V)` once, which quietly
 # re-aimed at whatever the newest week happened to be while the label still
@@ -52,10 +58,10 @@ check("FL-equivalent Suezmax, week ending 2026-10-09", S[WK41], 566600.0, 1.0, "
 
 
 # ---- kernel --------------------------------------------------------------
-kv = Kernel(**{k: CFG["kernel"]["vlcc"][k] for k in ("a", "b", "factor")})
-ks = Kernel(**{k: CFG["kernel"]["smax"][k] for k in ("a", "b", "factor")})
+kv = Kernel(**{k: CFG["kernel"]["vlcc"][k] for k in ("a", "b")})
+ks = Kernel(**{k: CFG["kernel"]["smax"][k] for k in ("a", "b")})
 
-tce, obs = kv.quarter(V, "2026Q3")
+tce, obs = kv.quarter(VU, "2026Q3")
 
 # These moved on 2026-10-16 because an INPUT changed, not the model: the week
 # ending 2026-08-14 was interpolated from its neighbours (its Baltic report was
@@ -76,8 +82,8 @@ check("Kernel VLCC 2026Q3 locked share is 1.0 (quarter fully fed)", obs, 1.0, 0.
 # ignore the suite. Removing the newest published week must never RAISE a
 # locked share and must LOWER at least one. Under the old bug it did neither:
 # numerator and denominator shrank together and the share stayed ~1.0.
-V_less = {d: v for d, v in V.items() if d != max(V)}
-pairs = [(q, kv.quarter(V, q)[1], kv.quarter(V_less, q)[1]) for q in CFG["quarters_12m"]]
+VU_less = {d: v for d, v in VU.items() if d != max(VU)}
+pairs = [(q, kv.quarter(VU, q)[1], kv.quarter(VU_less, q)[1]) for q in CFG["quarters_12m"]]
 check_true("Dropping the newest week never raises a locked share",
            all(less <= full + 1e-12 for _, full, less in pairs))
 check_true("Dropping the newest week lowers at least one locked share",
@@ -87,7 +93,7 @@ check_true("Dropping the newest week lowers at least one locked share",
 # rather than hardcoded — "2027Q2" stops being a future quarter in Feb 2027.
 far = max(V).year + 2
 check("A quarter with no feed weeks yet reports zero locked",
-      kv.quarter(V, f"{far}Q2")[1], 0.0, 0.0001)
+      kv.quarter(VU, f"{far}Q2")[1], 0.0, 0.0001)
 
 
 # ---- covered share -------------------------------------------------------
@@ -114,7 +120,25 @@ for r in quarterly:
 check("Covered vs the 18 disclosures, mean error", st.mean(errs), 0.0, 0.3, "pts")
 check("Covered vs the 18 disclosures, mean abs error", st.mean([abs(e) for e in errs]), 3.85, 0.05, "pts")
 
-tce_s, _ = ks.quarter(S, "2026Q3")
+
+# ---- the uplift is not applied twice -------------------------------------
+# Set every unpublished week to the slide's own base rate and the far quarters
+# must read BACK that rate. They read 147,000 against 140 while the uplift sat
+# inside the kernel, because a typed anchor is already an owner-level rate.
+# This is the regression guard for that bug.
+base_v = CFG["fcf"]["base_rates_kusd_day"]["vlcc"] * 1000
+fwd = dict(VU)
+_d = max(VU) + timedelta(days=7)
+for _ in range(80):
+    fwd[_d] = base_v
+    _d += timedelta(days=7)
+far_q = CFG["quarters_12m"][-1]          # far enough that no published week feeds it
+check(f"Base-case anchor reads back unchanged in {far_q}",
+      kv.quarter(fwd, far_q)[0], base_v, 1.0, "$/day")
+check_true("An observed week IS uplifted",
+           abs(VU[max(VU)] / V[max(V)] - CFG["realised_uplift"]["vlcc"]) < 1e-12)
+
+tce_s, _ = ks.quarter(SU, "2026Q3")
 check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")
 
 
@@ -125,8 +149,8 @@ BACKTEST = {
     "2026Q1": (102519, 71583), "2026Q2": (161589, 118664),
 }
 for q, (wantv, wants) in BACKTEST.items():
-    gv, _ = kv.quarter(V, q)
-    gs, _ = ks.quarter(S, q)
+    gv, _ = kv.quarter(VU, q)
+    gs, _ = ks.quarter(SU, q)
     check(f"Kernel back-test VLCC {q}", gv, wantv, max(600, wantv * 0.01), "$/day")
     check(f"Kernel back-test Suezmax {q}", gs, wants, max(600, wants * 0.01), "$/day")
 

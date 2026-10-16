@@ -70,7 +70,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
       <button class="preset" data-preset="base">At base case</button>
     </div>
     <table id="fc"></table>
-    <p class="note">Anchors drive the weeks that have not printed yet. How much of the current quarter is already fixed is the covered tile above.</p>
+    <p class="note">Rates here are Frontline-realised — benchmark × the fitted uplift — so the base case reads back as the base case. Anchors drive the weeks that have not printed yet; how much of the quarter is already fixed is the covered tile above.</p>
   </div>
 
   <div class="card full placeholder" style="margin-top:12px">
@@ -87,7 +87,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
 </div>
 
 <script type="module">
-import { parseCSV, num, blend, kernelQuarter, coveredShare, quarterBounds, FcfModel, fmt } from "../../core/model.js";
+import { parseCSV, num, blend, kernelQuarter, coveredShare, quarterBounds, uplift, FcfModel, fmt } from "../../core/model.js";
 import { lineChart } from "../../core/viz.js";
 
 const DAY = 86400000;
@@ -106,7 +106,15 @@ const mk = seg => baltic
   .map(r => [ts(r.week_ending), blend(r, cfg.blend[seg])])
   .filter(p => Number.isFinite(p[0]))
   .sort((a,b) => a[0]-b[0]);
-const V = mk("vlcc"), S = mk("smax");
+const V = mk("vlcc"), S = mk("smax");          // raw Baltic benchmark
+
+// Owner-realised terms, applied HERE and never in the kernel. A forecast
+// anchor you type is already an owner-level rate; marking it up again turned
+// the base case's 140 into 147. So V/S stay benchmark — the spot tile and the
+// benchmark chart — and VU/SU are what the kernel and the forecast see.
+const UP = cfg.realised_uplift;
+const VU = uplift(V, UP.vlcc), SU = uplift(S, UP.smax);
+const upLast = s => [...s].reverse().find(p => p[1] !== null)[1];
 const lastWith = s => [...s].reverse().find(p => p[1] !== null);
 const [tV, vV] = lastWith(V), [, vS] = lastWith(S);
 const prevOf = (s, t) => { const i = s.findIndex(p => p[0] === t); for (let j=i-1;j>=0;j--) if (s[j][1]!==null) return s[j][1]; };
@@ -120,7 +128,7 @@ const m = new FcfModel(cfg.fcf);
 // ---- next quarter ---------------------------------------------------------
 const nextQ = cfg.quarters_12m[0];
 const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
-const qV = kernelQuarter(V, nextQ, kv), qS = kernelQuarter(S, nextQ, ks);
+const qV = kernelQuarter(VU, nextQ, kv), qS = kernelQuarter(SU, nextQ, ks);
 
 // How much of it is already fixed. This is the covered-share estimate built on
 // Frontline's own disclosures, not the kernel's locked share — the latter only
@@ -303,7 +311,12 @@ if (fx.length) {
 
 // ---- forecast ------------------------------------------------------------
 const ANCH = [0, 13, 26, 52];                       // weeks from last published week
-const state = { v: [vV, vV, vV, vV].map(x => Math.round(x/1000)), ratio: +(vS/vV).toFixed(3) };
+// Every rate in this section is Frontline-realised, not benchmark — the two
+// presets below inject company-level rates (the slide's base case, a Fearnleys
+// charter rate) and "hold" injects the current benchmark already uplifted.
+const vVU = upLast(VU), vSU = upLast(SU);
+const state = { v: [vVU, vVU, vVU, vVU].map(x => Math.round(x/1000)),
+                ratio: +(vSU/vVU).toFixed(3) };
 
 document.getElementById("ctls").innerHTML =
   ANCH.map((w,i) => `<label class="ctl">VLCC ${w===0?"now":"+"+w+"w"} ($k/day)
@@ -325,8 +338,8 @@ function curve() {
 
 function render() {
   const fwd = curve();
-  const Vf = [...V, ...fwd];
-  const Sf = [...S, ...fwd.map(([t,v]) => [t, v*state.ratio])];
+  const Vf = [...VU, ...fwd];
+  const Sf = [...SU, ...fwd.map(([t,v]) => [t, v*state.ratio])];
   let rows = `<tr><th>Quarter</th><th>VLCC</th><th>Suezmax</th>
     <th>FCF/sh</th><th>@${fmt.pct(cfg.required_yields.base,0)}</th>
     <th class="c-y20">@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
@@ -364,10 +377,10 @@ document.querySelectorAll("button.preset").forEach(b => b.addEventListener("clic
   // The 1-yr T/C is the market's price for the WHOLE 12 months, not an endpoint to
   // glide toward — a linear fade to it still averages far above it. So each preset
   // applies its level from the first unpublished week.
-  const lvl = { hold: Math.round(vV/1000), tc: Math.round(tcV/1000),
+  const lvl = { hold: Math.round(vVU/1000), tc: Math.round(tcV/1000),
                 base: cfg.fcf.base_rates_kusd_day.vlcc }[b.dataset.preset];
   state.v = [lvl, lvl, lvl, lvl];
-  state.ratio = b.dataset.preset === "hold" ? +(vS/vV).toFixed(3)
+  state.ratio = b.dataset.preset === "hold" ? +(vSU/vVU).toFixed(3)
               : b.dataset.preset === "tc" ? +(tcS/tcV).toFixed(3)
               : +(cfg.fcf.base_rates_kusd_day.smax/cfg.fcf.base_rates_kusd_day.vlcc).toFixed(3);
   document.querySelectorAll("#ctls input[data-i]").forEach((el,i) => el.value = state.v[i]);
