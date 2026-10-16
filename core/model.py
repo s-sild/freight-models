@@ -126,7 +126,7 @@ class Kernel:
         """
         series = {date: rate}, published weeks only.
 
-        Returns (tce, share_observed). The denominator is every week that FEEDS
+        Returns (tce, share_locked). The denominator is every week that FEEDS
         the quarter, including ones not yet published — otherwise the share is
         near 1.0 by construction, because a week with no data is simply absent
         from the series.

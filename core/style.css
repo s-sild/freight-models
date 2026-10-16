@@ -155,10 +155,10 @@ a { color: var(--series-1); }
   #fx { font-size: 12.5px; }
   #fx th, #fx td { padding: 5px 4px; }
 
-  /* Forecast: seven columns do not fit either. The observed share is already a
+  /* Forecast: seven columns do not fit either. The locked share is already a
      tile at the top of the page, and the second required yield is the shadow
      figure the notes say not to carry on a glance surface. Both go. */
-  #fc .c-obs, #fc .c-y20 { display: none; }
+  #fc .c-locked, #fc .c-y20 { display: none; }
   #fc { font-size: 12.5px; }
   #fc th, #fc td { padding: 5px 4px; }
 

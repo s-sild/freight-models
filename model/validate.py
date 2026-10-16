@@ -25,6 +25,10 @@ def check(label, got, want, tol, unit=""):
     results.append((ok, label, got, want, unit))
     return ok
 
+def check_true(label, cond):
+    """A structural assertion: holds whatever week it is run in. Prints 1/0."""
+    return check(label, 1.0 if cond else 0.0, 1.0, 0.0)
+
 
 # ---- series construction -------------------------------------------------
 def series(seg):
@@ -37,10 +41,14 @@ def series(seg):
     return out
 
 V, S = series("vlcc"), series("smax")
-wk41 = max(V)
 
-check("FL-equivalent VLCC, week ending 2026-10-09", V[wk41], 785821.92, 1.0, "$/day")
-check("FL-equivalent Suezmax, week ending 2026-10-09", S[wk41], 566600.0, 1.0, "$/day")
+# Pinned to the DATE, not to max(V). These were `max(V)` once, which quietly
+# re-aimed at whatever the newest week happened to be while the label still
+# said 2026-10-09 — so every Friday they failed looking like a data error.
+# A checkpoint is only a checkpoint if it keeps measuring the same thing.
+WK41 = datetime.strptime("2026-10-09", "%Y-%m-%d").date()
+check("FL-equivalent VLCC, week ending 2026-10-09", V[WK41], 785821.92, 1.0, "$/day")
+check("FL-equivalent Suezmax, week ending 2026-10-09", S[WK41], 566600.0, 1.0, "$/day")
 
 
 # ---- kernel --------------------------------------------------------------
@@ -56,17 +64,30 @@ tce, obs = kv.quarter(V, "2026Q3")
 # Only ever re-pin these when the inputs deliberately change - otherwise the
 # tests stop catching anything.
 check("Kernel VLCC 2026Q3", tce, 158186, 400, "$/day")
-check("Kernel VLCC 2026Q3 share observed", obs, 1.0, 0.001)
+check("Kernel VLCC 2026Q3 locked share is 1.0 (quarter fully fed)", obs, 1.0, 0.001)
 
-# The share must be measured against every week that feeds the quarter,
-# published or not — otherwise an unpublished week is simply absent from the
-# series and the share reads ~1.0 whatever the truth.
-_, obs_q4 = kv.quarter(V, "2026Q4")
-_, obs_q4s = ks.quarter(S, "2026Q4")
-check("Kernel VLCC 2026Q4 share observed", obs_q4, 0.663, 0.01)
-check("Kernel Suezmax 2026Q4 share observed", obs_q4s, 0.558, 0.01)
-check("A quarter with no feed weeks yet reports zero observed",
-      kv.quarter(V, "2027Q2")[1], 0.0, 0.0001)
+# The locked share must be measured against every week that FEEDS a quarter,
+# published or not. Count only the weeks present in the file and an unpublished
+# week is simply absent, so the share reads ~1.0 whatever the truth — that bug
+# reported Q4-26 as 94% locked against a real 62%.
+#
+# Asserted structurally, not pinned: a pinned share is a snapshot of a quantity
+# that moves every Friday by design, and re-pinning it weekly trains you to
+# ignore the suite. Removing the newest published week must never RAISE a
+# locked share and must LOWER at least one. Under the old bug it did neither:
+# numerator and denominator shrank together and the share stayed ~1.0.
+V_less = {d: v for d, v in V.items() if d != max(V)}
+pairs = [(q, kv.quarter(V, q)[1], kv.quarter(V_less, q)[1]) for q in CFG["quarters_12m"]]
+check_true("Dropping the newest week never raises a locked share",
+           all(less <= full + 1e-12 for _, full, less in pairs))
+check_true("Dropping the newest week lowers at least one locked share",
+           any(less < full - 1e-9 for _, full, less in pairs))
+
+# Far enough out that no published week can reach it, computed from the data
+# rather than hardcoded — "2027Q2" stops being a future quarter in Feb 2027.
+far = max(V).year + 2
+check("A quarter with no feed weeks yet reports zero locked",
+      kv.quarter(V, f"{far}Q2")[1], 0.0, 0.0001)
 
 tce_s, _ = ks.quarter(S, "2026Q3")
 check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")

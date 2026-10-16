@@ -48,16 +48,17 @@ export function quarterBounds(q) {
 
 /**
  * series: [[msTimestamp, rate|null], ...] — published weeks only.
- * Returns {tce, observed}.
+ * Returns {tce, locked}.
  *
- * `observed` is measured against every week that FEEDS the quarter, including
- * ones not yet published. Dividing by the weeks present in the series instead
- * returns ~1.0 by construction, since an unpublished week is simply absent.
+ * `locked` is the share of the quarter already fixed by published weeks. It is
+ * measured against every week that FEEDS the quarter, including ones not yet
+ * published: divide by the weeks present and it reads ~1.0 by construction,
+ * since an unpublished week is simply absent.
  */
 export function kernelQuarter(series, q, { a, b, factor = 1 }) {
   const [qs, qe] = quarterBounds(q);
   const have = new Map(series.filter(p => p[1] !== null));
-  if (!have.size) return { tce: null, observed: 0 };
+  if (!have.size) return { tce: null, locked: 0 };
   const anchor = Math.max(...have.keys());
 
   // a week D reaches the quarter when D is in (qs - a - b, qe - a)
@@ -73,8 +74,8 @@ export function kernelQuarter(series, q, { a, b, factor = 1 }) {
     const r = have.get(t);
     if (r !== undefined) { known += ov; acc += ov * r; }
   }
-  if (!known) return { tce: null, observed: 0 };
-  return { tce: (acc / known) * factor, observed: known / total };
+  if (!known) return { tce: null, locked: 0 };
+  return { tce: (acc / known) * factor, locked: known / total };
 }
 
 // --- 3. coverage model ------------------------------------------------------

@@ -52,7 +52,7 @@ report was never retrieved. All eight routes are the midpoint of 08-07 and
 08-21; the row's `source` says so in capitals.
 
 Filling it moved 2026Q3 from 156,665 → 158,186 (VLCC) and 96,253 → 97,732
-(Suezmax), and 2026Q4 from 62.2% → 66.3% observed. If the real report surfaces,
+(Suezmax), and 2026Q4 from 62.2% → 66.3% locked. If the real report surfaces,
 replace the row and re-pin those tests.
 
 ## Retracted
@@ -66,7 +66,7 @@ replace the row and re-pin those tests.
   thousand dollars — the 2024Q1 spread was *minus* $370 — so they were
   statistically indistinguishable over the calibration window.
 - **Quarterly Suezmax/VLCC ratio on the "feeds" basis.** Divided averages taken
-  over different week sets (VLCC +5wk, Suezmax +3wk). Corrected to observed.
+  over different week sets (VLCC +5wk, Suezmax +3wk). Corrected to locked.
 - **DHT proxy — dropped by choice, not because it was wrong.** DHT publishes a
   Business Update ~2 weeks after quarter end with realised spot TCE and
   next-quarter bookings: a six-week lead on Frontline. But over 8 quarters the
@@ -95,7 +95,7 @@ replace the row and re-pin those tests.
 3. **Frontline does not disclose time-charter days.** Only spot days and
    contracted ballast days. Anything needing TC days stays blank.
 4. **Tests pass before anything ships.** `python3 model/validate.py`.
-5. **"Observed" counts every week that feeds a quarter, published or not.**
+5. **The locked share counts every week that feeds a quarter, published or not.**
    Dividing by weeks present in the data returns ~100% by construction. This was
    a real bug: it reported 2026Q4 as 94% locked against a true 62%.
 6. **One number per question on the dashboard.** It is read on the move, where a
