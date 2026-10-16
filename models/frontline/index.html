@@ -5,9 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Frontline — freight to earnings</title>
 <link rel="stylesheet" href="../../core/style.css">
+<style>
+/* Drop a hero.jpg beside this file and it appears behind the header band.
+   No file and the rule simply does not paint. Confined to the header so it
+   never sits behind the numbers — this panel is read at a glance. */
+body:has(.hero-img) header.page { margin: -24px -16px 4px; padding: 28px 16px 20px;
+  background-image: linear-gradient(rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.25)), url("hero.jpg");
+  background-size: cover; background-position: center 45%; }
+body:has(.hero-img) header.page h1,
+body:has(.hero-img) header.page .sub { color: #fff; }
+</style>
 </head>
 <body>
 <div class="wrap">
+  <img class="hero-img" src="hero.jpg" alt="" hidden onerror="this.remove()">
   <header class="page">
     <h1>Frontline plc</h1>
     <span class="sub">freight rates → recognised earnings → implied price</span>
