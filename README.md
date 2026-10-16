@@ -1,5 +1,7 @@
 # freight-models
 
+**→ [Frontline panel](https://s-sild.github.io/freight-models/models/frontline/)**
+
 Rate-driven valuation models. One model per folder.
 
 ```
