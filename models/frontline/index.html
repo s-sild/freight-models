@@ -28,6 +28,12 @@
   </div>
 
   <div class="card full" style="margin-top:12px">
+    <h2 id="fx-h">Frontline fixtures</h2>
+    <table id="fx"></table>
+    <p class="note" id="note-fx"></p>
+  </div>
+
+  <div class="card full" style="margin-top:12px">
     <h2>What the market pays for Frontline's own base case</h2>
     <div class="legend">
       <span><span class="sw" style="background:var(--series-1)"></span>implied FCF yield on $10.35/share</span>
@@ -45,8 +51,7 @@
       <button class="preset" data-preset="base">At base case</button>
     </div>
     <table id="fc"></table>
-    <p class="note">Weeks already published are fixed and cannot be overridden — the anchors only drive
-      weeks beyond the last Baltic report. Each quarter's share already locked is shown as “observed”.</p>
+    <p class="note">Anchors drive unpublished weeks only. “Observed” is the share already fixed.</p>
   </div>
 
   <div class="card full placeholder" style="margin-top:12px">
@@ -54,15 +59,11 @@
     <p class="sub2">Needs <code>data/fleet.csv</code>: vessel, segment, build year. The broker value curve is
       already seeded in <code>data/vessel_values.csv</code>.</p>
     <table id="navcurve"></table>
-    <p class="note">The age curve collapsed between July and September 2026 — 15-year values rose 62% against
-      18% for 5-year hulls, as buyers paid for immediate availability. Frontline's Euronav tonnage skews old,
-      so NAV is levered to the end of the curve that moved most. Sizing that is the open question for the position.</p>
+    <p class="note">The age curve has collapsed — old hulls rose hardest. This fleet skews old, so NAV is levered to that end. Sizing it is the open question.</p>
   </div>
 
   <p class="note" style="margin-top:20px">
-    Every figure traces to a CSV row with a source column. Parameters and their justification live in
-    <code>config.json</code>; what is settled, weak, or retracted is in <code>notes.md</code>.
-    The Python side carries 25 acceptance tests — if these numbers and those disagree, Python is right.
+    Every figure traces to a CSV row with a source. Parameters in <code>config.json</code>; reasoning in <code>notes.md</code>; 28 acceptance tests in <code>model/validate.py</code>.
   </p>
 </div>
 
@@ -77,9 +78,9 @@ const S1 = getComputedStyle(document.documentElement).getPropertyValue("--series
 const S2 = getComputedStyle(document.documentElement).getPropertyValue("--series-2").trim();
 
 const cfg = await (await fetch("config.json")).json();
-const [baltic, tcw, px, quarterly, vvals] = await Promise.all(
+const [baltic, tcw, px, quarterly, vvals, fixtures] = await Promise.all(
   ["data/baltic_weekly.csv","data/tc_weekly.csv","data/price.csv",
-   "data/fro_quarterly.csv","data/vessel_values.csv"].map(get));
+   "data/fro_quarterly.csv","data/vessel_values.csv","data/fro_fixtures.csv"].map(get));
 
 // ---- observed benchmark series ------------------------------------------
 const mk = seg => baltic
@@ -127,9 +128,9 @@ document.getElementById("tiles").innerHTML = `
   <h2>${nextQ} — already locked</h2>
   <div class="hero">${fmt.pct(qV.observed,0)}</div>
   <div class="sub2">of the quarter fixed by published weeks</div>
-  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC</span><span>${fmt.usd(qV.tce)}</span></div>
-  <div class="rowline"><span class="muted">Suezmax</span><span>${fmt.usd(qS.tce)}</span></div>
-  <p class="note">Rest depends on the forward curve below.</p>
+  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, locked days</span><span>${fmt.usd(qV.tce)}</span></div>
+  <div class="rowline"><span class="muted">Suezmax, locked days</span><span>${fmt.usd(qS.tce)}</span></div>
+  <p class="note">Earning-days already fixed by published Baltic weeks.</p>
 </div>
 
 <div class="card">
@@ -137,8 +138,7 @@ document.getElementById("tiles").innerHTML = `
   <div class="rowline"><span class="muted">VLCC</span><span>${fmt.usd(tcV)}</span></div>
   <div class="rowline"><span class="muted">Suezmax</span><span>${fmt.usd(tcS)}</span></div>
   <div class="rowline"><span class="muted">Aframax</span><span>${fmt.usd(tcA)}</span></div>
-  <p class="note">Priced fade from spot: VLCC ${fmt.signed(tcV/vV-1,0)}, Suezmax ${fmt.signed(tcS/vS-1,0)}.
-  Both segments to roughly the same place — the only market-priced point on the curve.</p>
+  <p class="note">A full year fixed today. Both segments priced ${fmt.signed(tcV/vV-1,0)} against spot.</p>
 </div>
 
 <div class="card">
@@ -147,6 +147,7 @@ document.getElementById("tiles").innerHTML = `
   <div class="sub2">FCF yield on the published base case</div>
   <div class="rowline" style="margin-top:8px"><span class="muted">12m VLCC @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)}</span></div>
   <div class="rowline"><span class="muted">12m VLCC @ ${fmt.pct(cfg.required_yields.alt,0)}</span><span>${fmt.usd(m.impliedRate(close, cfg.required_yields.alt)*1000)}</span></div>
+  <p class="note">The price read backwards: what a flat 12-month VLCC must average to justify it.</p>
 </div>
 
 <div class="card">
@@ -155,14 +156,14 @@ document.getElementById("tiles").innerHTML = `
   <div class="sub2">FCF yield if the 1-yr T/C held for 12 months</div>
   <div class="rowline" style="margin-top:8px"><span class="muted">FCF / share</span><span>${fmt.usd2(fpsTC)}</span></div>
   <div class="rowline"><span class="muted">price @ ${fmt.pct(cfg.required_yields.base,0)}</span><span>${fmt.usd2(fpsTC/cfg.required_yields.base)}</span></div>
-  <p class="note">Before any fleet-quality haircut — the T/C quote is for modern eco/scrubber tonnage.</p>
+  <p class="note">${fmt.usd(tcV)} on offer against the ${fmt.usd(m.impliedRate(close, cfg.required_yields.base)*1000)} the price needs. Before any fleet-age haircut.</p>
 </div>
 
 <div class="card">
   <h2>Next catalyst</h2>
   <div class="hero">${daysTo}<span style="font-size:15px;color:var(--text-muted);margin-left:6px">days</span></div>
   <div class="sub2">Q3 results, ${cfg.reporting.next_report}</div>
-  <p class="note">Settles the three-way disagreement on 2026Q3 recorded in notes.md.</p>
+  <p class="note">Settles the 2026Q3 disagreement in notes.md.</p>
 </div>`;
 
 // ---- charts --------------------------------------------------------------
@@ -180,7 +181,7 @@ lineChart(document.getElementById("chart-spot"), {
   series: [{ name: "VLCC", color: S1, points: win(V) }, { name: "Suezmax", color: S2, points: win(S) }],
 });
 document.getElementById("note-spot").textContent =
-  `Last ${WINDOW_MONTHS} months shown; ${V.filter(p=>p[1]!==null).length} weeks held back to 2022 for the back-test. VLCC = (1 − MEG weight) × mean(${cfg.blend.vlcc.atlantic.join(", ")}) + MEG weight × ${cfg.blend.vlcc.premium}. Suezmax = mean(${cfg.blend.smax.atlantic.join(", ")}).`;
+  `Last ${WINDOW_MONTHS} months. All ${V.filter(p=>p[1]!==null).length} weeks since 2022 drive the back-test.`;
 
 const ySeries = px.filter(r => num(r.close)).map(r => [ts(r.date), m.baseFps / num(r.close)]);
 lineChart(document.getElementById("chart-yield"), {
@@ -189,7 +190,37 @@ lineChart(document.getElementById("chart-yield"), {
   series: [{ name: "implied yield", color: S1, points: ySeries }],
 });
 document.getElementById("note-yield").textContent =
-  `On 28 August 2026 — the day the cash-generation slide was published — FRO closed at $41.40 against its own $10.35 base-case FCF per share: a 25.0% cap rate. That is where the ${fmt.pct(cfg.required_yields.base,0)} required yield comes from. Since then the market has moved to ${fmt.pct(m.impliedYieldOnBase(close))}, which is either a re-rating or a higher rate expectation — this model cannot tell them apart.`;
+  `25.0% on 28 August, ${fmt.pct(m.impliedYieldOnBase(close))} now. Either a re-rating or a higher rate expectation — the model cannot separate them.`;
+
+// ---- fixtures ------------------------------------------------------------
+// The most direct observation we have: what Frontline actually achieved, with
+// no benchmark-times-conversion-factor chain in between. Day-weighted only —
+// the plain average runs ~18% high, because the top rates are short MEG
+// voyages and the low ones long Atlantic hauls.
+const fx = fixtures
+  .filter(r => num(r.rv_tce) !== null)
+  .sort((a, b) => (a.reported < b.reported ? 1 : -1))
+  .slice(0, 10);
+
+if (fx.length) {
+  document.getElementById("fx-h").textContent = `Frontline fixtures — latest ${fx.length}`;
+  document.getElementById("fx").innerHTML =
+    `<tr><th>Reported</th><th class="t">Vessel</th><th class="t">Route</th><th class="t">Charterer</th>
+      <th>RV TCE</th><th>Days</th></tr>` +
+    fx.map(r => `<tr>
+      <td>${r.reported}</td>
+      <td class="t">${r.vessel}${r.status && r.status !== "Fixed" ? ` <span class="muted">(${r.status})</span>` : ""}</td>
+      <td class="t">${r.route || "—"}</td><td class="t muted">${r.charterer || "—"}</td>
+      <td>${fmt.usd(num(r.rv_tce))}</td><td>${num(r.rv_days) ?? "—"}</td></tr>`).join("") +
+    (() => {
+      const d = fx.reduce((s, r) => s + (num(r.rv_days) || 0), 0);
+      const w = fx.reduce((s, r) => s + num(r.rv_tce) * (num(r.rv_days) || 0), 0) / d;
+      return `<tr style="font-weight:600"><td class="t" colspan="4">Day-weighted</td>
+        <td>${fmt.usd(w)}</td><td>${d}</td></tr>`;
+    })();
+  document.getElementById("note-fx").textContent =
+    "One row per voyage, at the rate actually struck. Weighted by voyage days, never equally.";
+}
 
 // ---- forecast ------------------------------------------------------------
 const ANCH = [0, 13, 26, 52];                       // weeks from last observed
