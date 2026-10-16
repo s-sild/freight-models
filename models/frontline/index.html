@@ -6,14 +6,22 @@
 <title>Frontline — freight to earnings</title>
 <link rel="stylesheet" href="../../core/style.css">
 <style>
-/* Drop a hero.jpg beside this file and it appears behind the header band.
-   No file and the rule simply does not paint. Confined to the header so it
-   never sits behind the numbers — this panel is read at a glance. */
-body:has(.hero-img) header.page { margin: -24px -16px 4px; padding: 28px 16px 20px;
-  background-image: linear-gradient(rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.25)), url("hero.jpg");
-  background-size: cover; background-position: center 45%; }
-body:has(.hero-img) header.page h1,
-body:has(.hero-img) header.page .sub { color: #fff; }
+/* Drop a hero.jpg beside this file and it appears behind the whole page.
+   No file and the probe img removes itself, :has() stops matching, and none of
+   this paints. A fixed element rather than background-attachment: fixed, which
+   stutters on iOS Safari. Lighter scrim at the top so the photo reads behind
+   the title, heavier below where the panels sit. Cards paint their own opaque
+   --surface-1, so every number stays on a solid panel. */
+body:has(.hero-img)::before {
+  content: ""; position: fixed; inset: 0; z-index: 0;
+  background-image: linear-gradient(rgb(0 0 0 / 0.45), rgb(0 0 0 / 0.72)), url("hero.jpg");
+  background-size: cover; background-position: center;
+}
+body:has(.hero-img) > .wrap { position: relative; z-index: 1; }
+body:has(.hero-img) header.page h1 { color: #fff; }
+body:has(.hero-img) header.page .sub,
+body:has(.hero-img) > .wrap > .asof,
+body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
 </style>
 </head>
 <body>
