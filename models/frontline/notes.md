@@ -90,6 +90,31 @@ and the unsettled ones stay visible.
   Caveats: n=14, bands are coarse enough that a quarter can skip one, and the
   kernel parameters were fitted on 2025Q4–2026Q2, so this is not out-of-sample.
 
+- **BUG, found 17 Oct 2026, not yet fixed: the kernel factor is applied to
+  typed anchors.** Press "At base case" — every unpublished week at the slide's
+  140 — and the forecast quarters read **147,000**, which is 140,000 x 1.05.
+  The kernel's factor exists to convert *Baltic benchmark* into *Frontline
+  realised*. 140 is already a Frontline realised number, off their own cash
+  generation slide, so the preset converts an already-converted rate.
+
+  It fails its own check: the base-case preset should reproduce the slide by
+  construction and does not.
+
+  | | FCF/share | price @ 24% |
+  |---|---|---|
+  | slide's own base case | $10.35 | $43.12 |
+  | what the preset gives | $10.94 | $45.59 |
+
+  5.7% high. "At 1-yr T/C" has the same defect — 225 is a Fearnleys charter
+  rate, what Frontline would receive, and gets marked to 236.25. Only "Hold at
+  last week" is legitimate, since that injects the Baltic blend, which does
+  need converting.
+
+  Fix: apply the factor at series construction, on observed Baltic weeks only,
+  not inside `Kernel.quarter`. That also makes the printed-weeks rate and the
+  forecast consistent. The gap box is unaffected — it goes straight to the FCF
+  model without passing through the kernel. Re-pin the kernel tests after.
+
 - **Fleet-quality haircut — the live question.** Fearnleys quotes 1-yr T/C for
   modern eco/scrubber tonnage; this fleet is older. At T/C rates the stock
   yields 30.8% at $55.87; a 10% haircut gives 27.4%, a 20% haircut 24.1% — fair
