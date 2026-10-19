@@ -111,6 +111,52 @@ and the unsettled ones stay visible.
   Caveats: n=14, bands are coarse enough that a quarter can skip one, and the
   kernel parameters were fitted on 2025Q4–2026Q2, so this is not out-of-sample.
 
+- **BUG — the kernel fills a quarter far too fast. Must be fixed.** Raised
+  19 Oct 2026. On day 19 of Q4 the kernel reports 73.9% of the quarter's
+  earning days determined. Frontline's Q2 slide reports **86% of Q3 contracted
+  on 28 August — day 59** — where the kernel says 100%. The fill curve is wrong,
+  not the level at one date.
+
+  Why it matters, and it is not cosmetic: an over-fast fill is **anti-conservative
+  in a falling market**. It says three quarters of the quarter is safe at
+  today's high rates when most of it still has to be fixed at whatever the
+  market gives. The model's job is to produce a conservative reference point
+  and it does the opposite.
+
+  **Two explanations tested and killed on 19 Oct.** Both were mine; both were
+  wrong.
+  1. *Different denominators — FRO counts ballast, the kernel counts earning
+     days.* Dead: the slide header says **"Reported earnings basis load to
+     discharge"**, the same basis the kernel uses.
+  2. *The disclosure is as of a cut-off before publication, ~21 days.* Found by
+     grid search, MAE 3.7pts at L=76 — the observed fixture mean — which looked
+     compelling. Dead: the column says **"Q3 2026 spot TCE currently
+     contracted"**. Currently. No lag.
+
+  So the disclosure is a valid calibration target on a matched basis and matched
+  date, and the kernel misses it by 14 points.
+
+  **What every attempt has in common.** A rectangular kernel and a
+  commitment-decay model both need a horizon near **30 days** to reproduce the
+  disclosures, against Frontline's own logged round voyages of 34-120 days,
+  mean 76 (`fro_fixtures.csv`). Fitting the disclosure demands a schedule that
+  cannot physically exist. That consistency across two unrelated functional
+  forms is a clue and is not yet understood. Candidate not yet tested: the
+  binding horizon may be the **laycan lead time** - how far ahead cargoes are
+  fixed, typically weeks - rather than the voyage length.
+
+  **A dated parameter the model ignores.** Same report, slide 11: *"Avg
+  Non-Laden Days per VLCC Voyage +23%"*, *"Days without cargo lengthened
+  structurally as load areas shifted west, waiting times grew"*, *"Idling
+  accumulated east of Suez"*. The kernel holds `a` fixed at 32 across
+  2024Q1-2026Q2 while the company says ballast is growing structurally. Note
+  `a` was fitted across that same window so it already absorbs part of the
+  rise - scaling it to 39 would double-count. The honest fix is a time-varying
+  `a`, which is a rebuild, not a tweak.
+
+  Until this is fixed, do not read the forecast table's current-quarter figure
+  as conservative.
+
 - **Fleet-quality haircut — the live question.** Fearnleys quotes 1-yr T/C for
   modern eco/scrubber tonnage; this fleet is older. At T/C rates the stock
   yields 30.8% at $55.87; a 10% haircut gives 27.4%, a 20% haircut 24.1% — fair
