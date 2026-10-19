@@ -154,6 +154,31 @@ and the unsettled ones stay visible.
   rise - scaling it to 39 would double-count. The honest fix is a time-varying
   `a`, which is a rebuild, not a tweak.
 
+  **First real lead, 19 Oct: it is utilisation, not schedule.** Work the
+  arithmetic by hand at day 57 of a 92-day quarter. Days 0-57 have happened:
+  62%. Reaching 86% needs 22 of the remaining 35 days already fixed. With an
+  80-day voyage those late days are covered by ships fixed around day 25, which
+  have fixed — which is exactly why the kernel reads ~100%. **No voyage length
+  produces 86%**, because a longer voyage reaches further forward, not less.
+  Every attempt to shorten the schedule was trying to fix a utilisation problem
+  with a timing parameter.
+
+  The missing days are not ships yet to be fixed. They are ships not fixed at
+  all — open, waiting, idle. The kernel assumes permanent employment. Slide 11
+  says otherwise in the company's own words.
+
+  Fitting `contracted = kernel_fill x (1 - idle)` across the 18 disclosures
+  gives **idle 18%, MAE 6.6pts** against the raw kernel's 15.5. Q4 today reads
+  60.6% rather than 73.9%.
+
+  Progress, not a solution: 6.6pts is still well short of `covered_share`'s
+  3.85, and the residuals keep a clear shape — every large miss is a **Q1
+  quarter** (-17.8, -11.6, -10.8, -22.8), where the kernel reads 84% and
+  Frontline reports 80-92%. The kernel's fill swings 84% to 100% with how the
+  calendar falls against its window; the disclosures sit in a tight band
+  regardless. Something still imposes a calendar sensitivity that reality does
+  not have. That is the next thread.
+
   Until this is fixed, do not read the forecast table's current-quarter figure
   as conservative.
 
