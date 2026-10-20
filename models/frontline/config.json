@@ -25,10 +25,12 @@
   },
 
   "kernel": {
-    "vlcc": {"a": 25, "b": 55},
+    "vlcc": {"a": 14, "b": 66},
     "smax": {"a": 20, "b": 44},
-    "note": "a is a LAG, b a RECOGNITION SPREAD. They are NOT ballast and laden days - fitting them to physical voyage values roughly doubles the rate error, tested 20 Oct 2026. What IS physical is their sum: a+b = 80 for VLCC, against a round voyage of 87 implied by our six logged fixtures, 80 from the free fit against both targets, and 76 from the fixture mean. Three independent routes to the same total. The split is chosen by fit, inside a flat optimum: VLCC 25/55 scores 4.0pts on the 18 disclosures and 5.6% on the TCE back-test, against 3.7/4.1 at the free optimum of 14/66 and 4.3/7.9 at the physical 42/45. Suezmax scaled on the same ratio.",
-    "load_to_discharge_evidence": "Baltic's own TD3C method: 5,897nm laden at 13.0kn = 18.9d, plus 2 load and 3 discharge days = 24.0d against a 46.5d round voyage, a ratio of 0.516. Applied to our logged fixtures: Atlantic mean RV 92.8d -> 47.9d, MEG mean 41.5d -> 21.4d (the Baltic's own standard MEG voyage says 24.0, an 11% check). Blended 0.88/0.12: round voyage 86.6d, load to discharge 44.7d. So the physical b is ~45 - and it fits worse. See notes.md."
+    "note": "a is the lag from a fixture being ASSESSED to it starting to earn; b is the load-to-discharge window over which that revenue is recognised. a+b is NOT the round voyage - the next cargo is fixed partway through the current one, so there is no reason they match. Assuming they did is what made the fitted a look wrong for two sessions.",
+    "b_evidence": "MEASURED, 20 Oct 2026, from 17 broker-reported fixtures across 11 operators with ballast/laden/port splits (data/voyage_splits.csv). Load to discharge = laden + port. Brazil/China n=10: 61.4% of a 85.1d round voyage = 52.2d. USG/China+Japan n=7: 79.0% of 116.6d = 92.2d. MEG 24.0d from the Baltic's own TD3C method. Atlantic basket = mean(52.2, 92.2) = 72.2; blended 0.88/0.12 = 66.4d. The free fit against both targets independently wanted 66. An earlier estimate of 44.7d was wrong: it applied the Baltic's TD3C load-to-discharge ratio of 0.516 to Atlantic routes, where the real share is 61-79% because port time is far heavier and the ballast leg proportionally shorter.",
+    "a_evidence": "FITTED, not measured. 14 days is the lag from Baltic assessment to commencement of loading - roughly a laycan lead. The fixture data carries open dates but not laycan, so this is the one VLCC parameter with no direct measurement. At b=66 the fit is flat between a=10 and a=18.",
+    "smax_caveat": "Suezmax 20/44 is scaled, not measured - no Suezmax voyage splits yet, and its route basket is not a consistent series (see blend.smax.note). The weakest parameters in the model."
   },
 
   "coverage": {
@@ -52,8 +54,8 @@
   },
 
   "idle_fraction": {
-    "value": 0.21,
-    "note": "Share of the fleet not fixed at any moment - open, waiting, repositioning. The kernel assumes permanent employment; Frontline does not have it. Slide 11 of the Q2 2026 report: 'Avg Non-Laden Days per VLCC Voyage +23%', 'Idling accumulated east of Suez, capacity present but not contestable for the Atlantic cargoes'. Fitted on all 18 disclosed coverage figures: contracted = kernel share x (1 - idle). Without it the kernel reads ~100% contracted a month before the report, against the 68-92% Frontline states - anti-conservative in a falling market, which is the opposite of this model's job."
+    "value": 0.19,
+    "note": "Share of the fleet not fixed at any moment - open, waiting, repositioning. The kernel assumes permanent employment; Frontline does not have it. Slide 11 of the Q2 2026 report: 'Avg Non-Laden Days per VLCC Voyage +23%', 'Idling accumulated east of Suez, capacity present but not contestable for the Atlantic cargoes'. Fitted on all 18 disclosed coverage figures: contracted = kernel share x (1 - idle). 0.19 at the VLCC kernel 14/66, giving 3.79pts mean absolute error. Without it the kernel reads ~100% contracted a month before the report, against the 68-92% Frontline states - anti-conservative in a falling market, which is the opposite of this model's job."
   },
 
   "quarters_12m": ["2026Q4", "2027Q1", "2027Q2", "2027Q3"],

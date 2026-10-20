@@ -69,7 +69,7 @@ tce, obs = kv.quarter(VU, "2026Q3")
 # figures of 156,665 / 96,253, which were computed with the gap left open.
 # Only ever re-pin these when the inputs deliberately change - otherwise the
 # tests stop catching anything.
-check("Kernel VLCC 2026Q3", tce, 159497, 400, "$/day")
+check("Kernel VLCC 2026Q3", tce, 165346, 400, "$/day")
 check("Kernel VLCC 2026Q3 locked share is 1.0 (quarter fully fed)", obs, 1.0, 0.001)
 
 # The locked share must be measured against every week that FEEDS a quarter,
@@ -101,7 +101,7 @@ check("A quarter with no feed weeks yet reports zero locked",
 # fleet that is not fixed at all. Structural assertions, so they survive a new
 # week; the fit itself is checked against the 18 disclosures below.
 IDLE = CFG["idle_fraction"]["value"]
-check("Idle fraction", IDLE, 0.21, 0.001)
+check("Idle fraction", IDLE, 0.19, 0.001)
 check_true("Covered is strictly below the raw kernel fill",
            covered(VU, "2026Q4", kv, IDLE) < kv.quarter(VU, "2026Q4")[1])
 check_true("Covered scales exactly by (1 - idle)",
@@ -119,9 +119,9 @@ for r in quarterly:
     rd = dt.fromisoformat(r["report_date"])
     sub = {d: v for d, v in VU.items() if d <= rd}
     errs.append(covered(sub, f"{y}Q{n}", kv, IDLE) * 100 - int(r["vlcc_next_cov_pct"]))
-check("Covered vs the 18 disclosures, mean error", st.mean(errs), -0.75, 0.1, "pts")
+check("Covered vs the 18 disclosures, mean error", st.mean(errs), -0.94, 0.1, "pts")
 check("Covered vs the 18 disclosures, mean abs error",
-      st.mean([abs(e) for e in errs]), 4.0, 0.3, "pts")
+      st.mean([abs(e) for e in errs]), 3.79, 0.1, "pts")
 # The bug this replaced: without idle the kernel reads ~100% a month early.
 check_true("Without idle the kernel would read over 95% at the report dates",
            st.mean([kv.quarter({d: v for d, v in VU.items()
@@ -171,8 +171,8 @@ check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")
 # ---- kernel back-test ----------------------------------------------------
 # These are the errors we measured against reported TCEs.
 BACKTEST = {
-    "2025Q3": (38031, 35208), "2025Q4": (70781, 58696),
-    "2026Q1": (102966, 72973), "2026Q2": (158498, 117074),
+    "2025Q3": (38449, 35208), "2025Q4": (74466, 58696),
+    "2026Q1": (106509, 72973), "2026Q2": (157602, 117074),
 }
 for q, (wantv, wants) in BACKTEST.items():
     gv, _ = kv.quarter(VU, q)

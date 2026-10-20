@@ -154,25 +154,37 @@ and the unsettled ones stay visible.
   one interpolated row, 2026-08-14, agreed separately. When the defect is in
   the model, fix the model.
 
-- **a and b are a lag and a recognition spread, not ballast and laden.**
-  Settled 20 Oct after four rounds of confusion. Their **sum** is physical:
-  a+b = 80 for VLCC, against a round voyage of 87 implied by our logged
-  fixtures, 80 from the free fit, and 76 from the fixture mean. The **split**
-  is not: fitting it to physical voyage values roughly doubles the rate error.
+- **b is measured: 66 days. Corrected 20 Oct, same day I got it wrong.**
+  17 broker-reported fixtures across 11 operators, with ballast/laden/port
+  splits (`data/voyage_splits.csv`). Load to discharge = laden + port:
 
-  | a / b | basis | cov MAE | TCE MAE | Q4 now |
+  | route | n | round voyage | L2D share | L2D days |
   |---|---|---|---|---|
-  | 42/45 | Baltic ratio + our fixtures | 4.3p | 7.9% | 70% |
-  | 25/55 | **adopted** | 4.0p | 5.6% | 61% |
-  | 14/66 | free fit | 3.7p | 4.1% | 57% |
+  | Brazil/China (TD15 proxy) | 10 | 85.1 d | 61.4% | 52.2 |
+  | USG/China + Japan (TD22) | 7 | 116.6 d | 79.0% | 92.2 |
+  | MEG (Baltic's own TD3C method) | — | 46.5 d | 51.6% | 24.0 |
 
-  Load-to-discharge evidence, since it is the one physically checkable piece:
-  the Baltic's own TD3C method is 5,897nm laden at 13.0kn = 18.9 days plus 2
-  load and 3 discharge days — 24.0 days against a 46.5-day round voyage, a
-  ratio of 0.516. Applied to our fixtures: Atlantic 92.8d → 47.9d, MEG 41.5d →
-  21.4d against the Baltic's own 24.0 for a standard MEG voyage, an 11% check.
-  Blended 0.88/0.12 that is a 44.7-day load-to-discharge. So the physical b is
-  ~45 — and it fits worst. Hence the renaming.
+  Atlantic basket mean(52.2, 92.2) = 72.2; blended 0.88/0.12 = **66.4 days**.
+  The free fit against both targets independently wanted 66.
+
+  **The earlier 44.7-day estimate was wrong**, and worth recording why: it took
+  the Baltic's TD3C load-to-discharge ratio of 0.516 and applied it to Atlantic
+  routes. On those routes the real share is 61-79%, because port time is far
+  heavier and the ballast leg proportionally shorter. One route's ratio does
+  not travel.
+
+  **And the framing error that made the fit look unjustifiable**: I assumed
+  a+b should equal the round voyage. It should not. `a` is the lag from a
+  fixture being ASSESSED to it starting to earn; the next cargo is fixed
+  partway through the current voyage, so the two never had to sum to a round
+  trip. That false constraint drove two sessions of arguing the fit against
+  physics that were never in conflict.
+
+  Adopted: VLCC **14/66**, idle **0.19**. Coverage 3.79pts across the 18
+  disclosures, back-test 4.6%, Q4 reads 57.5%. Best on both targets and now
+  the physically measured one. `a` = 14 remains fitted — the fixture list
+  carries open dates but not laycan, so it is the one VLCC parameter with no
+  direct measurement, and the fit is flat between 10 and 18.
 
 - **The Suezmax basket is not one consistent series.** Found 20 Oct. The blend
   is the mean of the routes *present* in a week — a blank is excluded, never
