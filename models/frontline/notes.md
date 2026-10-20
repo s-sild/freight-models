@@ -111,31 +111,48 @@ and the unsettled ones stay visible.
   Caveats: n=14, bands are coarse enough that a quarter can skip one, and the
   kernel parameters were fitted on 2025Q4–2026Q2, so this is not out-of-sample.
 
-- **The kernel filled a quarter too fast — fixed 20 Oct 2026.** On day 19 of
-  Q4 it read 73.9% determined; Frontline's Q2 slide reports 86% of Q3
-  contracted on 28 August, day 59, where the kernel said 100%. An over-fast
-  fill is anti-conservative in a falling market, which is the opposite of this
-  model's job.
+- **The kernel filled a quarter too fast. Fixed properly 20 Oct 2026, on the
+  second attempt.** It read 73.9% of Q4 determined on day 19; Frontline
+  reports ~85% fixed only by day 57. An over-fast fill is anti-conservative in
+  a falling market, which is the opposite of this model's job.
 
-  Two wrong explanations, both mine, both killed by the slide itself.
-  *Different denominators*: dead — the header reads "Reported earnings basis
-  load to discharge", the same basis the kernel uses. *A reporting cut-off
-  lag of ~21 days*: found by grid search at MAE 3.7pts with L=76, the observed
-  fixture mean, and it was convincing — dead, the column reads "currently
-  contracted".
+  **The first attempt was a scalar haircut and it was not a fix.**
+  `contracted = kernel fill x (1 - idle)` made the DISPLAYED number match the
+  disclosures at the one date they are published. It changed nothing about the
+  shape of the curve — the kernel still filled 71% by day 19 and ~99% by day
+  57 — and the rate blend still used the kernel's weights. So the forecast,
+  the only output that matters, was identical before and after. Scaling a
+  wrong curve by a constant leaves it wrong everywhere except the calibration
+  point. A flat haircut also never decayed, so a *completed* quarter read 81%
+  contracted when every day of it had happened.
 
-  **It was utilisation, not schedule.** At day 57, days 0-57 are 62%; reaching
-  86% needs 22 of the remaining 35 already fixed, and with an 80-day voyage
-  those are covered by ships fixed around day 25, which have fixed. No voyage
-  length produces 86%: a longer voyage reaches further forward, not less. The
-  missing days are ships not fixed at all — open, waiting, repositioning. Q2
-  slide 11, the company's own words: *"Avg Non-Laden Days per VLCC Voyage
-  +23%"*, *"Idling accumulated east of Suez, capacity present but not
-  contestable for the Atlantic cargoes."*
+  **The fix is a curve with the right shape, driving the rate.**
 
-  `contracted = kernel fill x (1 - idle)`, idle = **0.21** fitted on all 18
-  disclosures: **3.98pts mean absolute, -0.75 bias**, against 15.5 for the raw
-  fill. Q4 now reads 61% rather than 77%.
+      fixed = elapsed + phi x (1 - elapsed),  phi = 0.397
+
+  Elapsed days are fixed by definition; phi of the remainder is already on
+  subs. Solved on all 18 disclosures at 3.76pts mean absolute. Right at both
+  ends — 52% on day 19, 77% on day 57, 1.0 at quarter end.
+
+  And the part that was missing the first time: **the rate blend now weights by
+  this curve, not by the kernel's fill.**
+
+      rate = fixed x (printed-week rate) + (1 - fixed) x (curve rate)
+
+  The kernel still decides which weeks reach a quarter and with what weight.
+  It no longer decides how settled the quarter is. A completed quarter has
+  fixed = 1.0, so every back-test value is untouched — which is how we know
+  the change is confined to the forecast.
+
+  Effect on Q4-26, at the 1-yr T/C anchor: **$400,871 -> $355,182**, 11% lower.
+  At the base case, 16% lower. The direction is the point: when the curve sits
+  below the printed weeks, the old blend was anchored to rates that had
+  already printed.
+
+  It also removed a second defect. 2027Q1 used to read $142,205 at the base
+  case instead of $140,000, from a three-day sliver of one printed week
+  bleeding past the quarter boundary. A quarter that has not started now has
+  fixed = 0 and is pure curve.
 
 - **Holiday weeks are not pending weeks — model fix, not a data fix.** The
   Baltic is a London exchange and does not publish over UK holidays: 14 of 250

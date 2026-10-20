@@ -87,7 +87,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
 </div>
 
 <script type="module">
-import { parseCSV, num, blend, kernelQuarter, covered, quarterBounds, uplift, FcfModel, fmt } from "../../core/model.js";
+import { parseCSV, num, blend, kernelQuarter, fixedShare, quarterRate, quarterBounds, uplift, FcfModel, fmt } from "../../core/model.js";
 import { lineChart } from "../../core/viz.js";
 
 const DAY = 86400000;
@@ -130,16 +130,16 @@ const nextQ = cfg.quarters_12m[0];
 const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
 const qV = kernelQuarter(VU, nextQ, kv), qS = kernelQuarter(SU, nextQ, ks);
 
-// How much of it is already contracted: the kernel's own fill, scaled down by
-// the slice of the fleet that is not fixed at all. The raw fill reads ~100% a
-// month before the report against the 68-92% Frontline states — that gap is
-// idle capacity, not timing. See notes.md and config idle_fraction.
+// How much of it is already fixed: elapsed days plus phi of the remainder.
+// NOT the kernel's own fill, which reaches 71% by day 19 and ~99% by day 57
+// against the company's ~85% at day 57. This curve also drives the rate blend
+// below, which is the part that actually matters. See config fill_curve.
 const today = Date.now();
 const [qsMs, qeMs] = quarterBounds(nextQ);
 const qLen = Math.round((qeMs - qsMs) / DAY);
 const qDay = Math.max(0, Math.min(qLen, Math.round((today - qsMs) / DAY)));
-const IDLE = cfg.idle_fraction.value;
-const covNow = covered(VU, nextQ, kv, IDLE);
+const PHI = cfg.fill_curve.phi;
+const covNow = fixedShare(today, nextQ, PHI);
 
 // ---- forward market ------------------------------------------------------
 const tcV = num(tc.vlcc_1yr_tc), tcS = num(tc.smax_1yr_tc), tcA = num(tc.afra_1yr_tc);
@@ -345,7 +345,10 @@ function render() {
     <th class="c-y20">@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
   const blend12 = {}; let wsum = 0;
   for (const q of cfg.quarters_12m) {
-    const a = kernelQuarter(Vf, q, kv), b = kernelQuarter(Sf, q, ks);
+
+    const av = quarterRate(VU, fwd, q, kv, PHI, today);
+    const bv = quarterRate(SU, fwd.map(([t,v]) => [t, v*state.ratio]), q, ks, PHI, today);
+    const a = { tce: av }, b = { tce: bv };
         const r = { vlcc: a.tce/1000, smax: b.tce/1000, lr2: (a.tce/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
     const fps = m.fcfPerShare(r);
     const dq = cfg.vlcc_spot_days_by_quarter[q] || 0;

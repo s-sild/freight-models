@@ -9,7 +9,7 @@ import sys, os, json
 from datetime import datetime, date as dt, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "core"))
 from model import (read_csv, num, blend, Kernel, coverage, implied_k,
-                   covered, uplift, FcfModel, mean_of)
+                   fixed_share, quarter_rate, uplift, FcfModel, mean_of)
 import statistics as st
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "models", "frontline")
@@ -96,40 +96,51 @@ check("A quarter with no feed weeks yet reports zero locked",
       kv.quarter(VU, f"{far}Q2")[1], 0.0, 0.0001)
 
 
-# ---- covered share -------------------------------------------------------
-# The panel's one number: the kernel's own fill scaled by the slice of the
-# fleet that is not fixed at all. Structural assertions, so they survive a new
-# week; the fit itself is checked against the 18 disclosures below.
-IDLE = CFG["idle_fraction"]["value"]
-check("Idle fraction", IDLE, 0.19, 0.001)
-check_true("Covered is strictly below the raw kernel fill",
-           covered(VU, "2026Q4", kv, IDLE) < kv.quarter(VU, "2026Q4")[1])
-check_true("Covered scales exactly by (1 - idle)",
-           abs(covered(VU, "2026Q4", kv, IDLE)
-               - kv.quarter(VU, "2026Q4")[1] * (1 - IDLE)) < 1e-12)
-check_true("A quarter with no feed weeks is covered 0",
-           covered(VU, f"{far}Q2", kv, IDLE) == 0.0)
+# ---- the fill curve ------------------------------------------------------
+# The panel's one number, and the weight on the rate blend. It replaced a flat
+# idle haircut that matched the disclosures at the one date they are published
+# and left the curve's SHAPE untouched - the kernel still filled a quarter 71%
+# by day 19 against the company's ~85% by day 57, and the forecast still used
+# the kernel's weights. These tests pin the shape, not a snapshot.
+PHI = CFG["fill_curve"]["phi"]
+check("Fill curve phi", PHI, 0.397, 0.001)
+check("Fixed share at quarter end is 1.0", fixed_share(dt(2026,12,31), "2026Q4", PHI), 1.0, 0.012)
+check("Fixed share before the quarter starts is 0",
+      fixed_share(dt(2026,9,30), "2026Q4", PHI), 0.0, 1e-9)
+check_true("Fixed share rises every day of the quarter",
+           all(fixed_share(dt(2026,10,1)+timedelta(days=i), "2026Q4", PHI)
+               < fixed_share(dt(2026,10,1)+timedelta(days=i+1), "2026Q4", PHI)
+               for i in range(90)))
+# The defect it was built to fix: the kernel fills far faster than reality.
+check_true("The curve fills slower than the kernel on day 19",
+           fixed_share(dt(2026,10,20), "2026Q4", PHI) < kv.quarter(VU, "2026Q4")[1] - 0.10)
+check("Fixed share on day 19 of Q4", fixed_share(dt(2026,10,20), "2026Q4", PHI), 0.522, 0.002)
+check("Fixed share on day 57, where the reports land",
+      fixed_share(dt(2026,11,27), "2026Q4", PHI), 0.771, 0.002)
 
-# Reproduces the 18 disclosures. Mean error is near zero because idle was
-# fitted on them; the spread is what the test actually pins.
 errs = []
 for r in quarterly:
     y, n = (int(r["quarter"][:4]) + 1, 1) if r["quarter"][-1] == "4" \
            else (int(r["quarter"][:4]), int(r["quarter"][-1]) + 1)
-    rd = dt.fromisoformat(r["report_date"])
-    sub = {d: v for d, v in VU.items() if d <= rd}
-    errs.append(covered(sub, f"{y}Q{n}", kv, IDLE) * 100 - int(r["vlcc_next_cov_pct"]))
-check("Covered vs the 18 disclosures, mean error", st.mean(errs), -0.94, 0.1, "pts")
-check("Covered vs the 18 disclosures, mean abs error",
-      st.mean([abs(e) for e in errs]), 3.79, 0.1, "pts")
-# The bug this replaced: without idle the kernel reads ~100% a month early.
-check_true("Without idle the kernel would read over 95% at the report dates",
-           st.mean([kv.quarter({d: v for d, v in VU.items()
-                                if d <= dt.fromisoformat(r["report_date"])},
-                               "2026Q4" if False else
-                               (f"{int(r['quarter'][:4]) + 1}Q1" if r["quarter"][-1] == "4"
-                                else f"{r['quarter'][:4]}Q{int(r['quarter'][-1]) + 1}"))[1]
-                    for r in quarterly]) > 0.95)
+    errs.append(fixed_share(dt.fromisoformat(r["report_date"]), f"{y}Q{n}", PHI) * 100
+                - int(r["vlcc_next_cov_pct"]))
+check("Fill curve vs the 18 disclosures, mean abs error",
+      st.mean([abs(e) for e in errs]), 3.76, 0.05, "pts")
+
+# ---- the rate blend uses the fill curve, not the kernel's fill -----------
+_fwd = {}
+_d = max(VU) + timedelta(days=7)
+for _ in range(80):
+    _fwd[_d] = 225_000.0
+    _d += timedelta(days=7)
+check_true("A completed quarter ignores the curve entirely",
+           abs(quarter_rate(VU, _fwd, "2026Q2", kv, PHI, dt(2026,10,20))
+               - kv.quarter(VU, "2026Q2")[0]) < 1e-9)
+_q4 = quarter_rate(VU, _fwd, "2026Q4", kv, PHI, dt(2026,10,20))
+check_true("Q4 sits between the printed rate and the curve",
+           225_000 < _q4 < kv.quarter(VU, "2026Q4")[0])
+check_true("Q4 is weighted by the fill curve, not the kernel fill",
+           _q4 < 0.6 * kv.quarter(VU, "2026Q4")[0] + 0.4 * 225_000 + 1)
 
 
 # ---- holiday weeks are not pending weeks ---------------------------------

@@ -53,9 +53,9 @@
     "note": "0.24 is not an assumption. On 28 August 2026, the day the slide was published, FRO closed at $41.40 against the slide's own $10.35 base-case FCF/share - a 25.0% cap rate. 24% sits a point inside that."
   },
 
-  "idle_fraction": {
-    "value": 0.19,
-    "note": "Share of the fleet not fixed at any moment - open, waiting, repositioning. The kernel assumes permanent employment; Frontline does not have it. Slide 11 of the Q2 2026 report: 'Avg Non-Laden Days per VLCC Voyage +23%', 'Idling accumulated east of Suez, capacity present but not contestable for the Atlantic cargoes'. Fitted on all 18 disclosed coverage figures: contracted = kernel share x (1 - idle). 0.19 at the VLCC kernel 14/66, giving 3.79pts mean absolute error. Without it the kernel reads ~100% contracted a month before the report, against the 68-92% Frontline states - anti-conservative in a falling market, which is the opposite of this model's job."
+  "fill_curve": {
+    "phi": 0.397,
+    "note": "Share of a quarter's REMAINING days already fixed, so fixed = elapsed + phi x (1 - elapsed). Solved on all 18 disclosures: 3.76pts mean absolute. It replaces a flat idle haircut, which matched the disclosures at the one date they are published and left the curve's SHAPE untouched - the kernel still filled a quarter 71% by day 19 against the company's ~85% by day 57, and the rate blend still used those weights. Scaling a wrong curve by a constant leaves it wrong everywhere but the calibration point and leaves the forecast unchanged, which was the entire defect. This form is right at both ends: 52% on day 19, 77% on day 57, 1.0 at quarter end. The rate blend now weights printed weeks against the forward curve by THIS, not by the kernel's fill."
   },
 
   "quarters_12m": ["2026Q4", "2027Q1", "2027Q2", "2027Q3"],

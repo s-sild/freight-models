@@ -92,16 +92,49 @@ export const uplift = (series, f) =>
 
 // --- 3a. covered share ------------------------------------------------------
 /**
- * Estimated share of quarter q already contracted: the kernel's fill scaled by
- * the slice of the fleet that is not fixed at all.
- *     contracted = kernel fill x (1 - idle)
- * The kernel assumes permanent employment; Frontline does not have it. Without
- * this the model reads ~100% a month before the report against the 68-92% the
- * company states. See config idle_fraction.
+ * Share of quarter q whose rate is already fixed, as of `asof` (ms).
+ *     fixed = elapsed + phi x (1 - elapsed)
+ * Replaced a flat idle haircut on the kernel's fill. The haircut matched the
+ * disclosures at the one date they are published and left the SHAPE of the
+ * curve untouched — the kernel still reached 71% by day 19 and ~99% by day 57,
+ * and the rate blend still used those weights. Right at both ends: 1.0 at
+ * quarter end, and slow early.
  */
-export function covered(series, q, kern, idle) {
-  const { locked } = kernelQuarter(series, q, kern);
-  return locked === null || locked === undefined ? null : locked * (1 - idle);
+export function fixedShare(asof, q, phi) {
+  const [qs, qe] = quarterBounds(q);
+  if (asof <= qs) return 0;
+  if (asof >= qe) return 1;
+  const elapsed = (asof - qs) / (qe - qs);
+  return elapsed + phi * (1 - elapsed);
+}
+
+/**
+ * A quarter's TCE, blended by how much of it is FIXED rather than by how many
+ * Baltic weeks have printed.
+ *     rate = fixed x (printed-week rate) + (1 - fixed) x (curve rate)
+ * printed and forecast are [[ms, rate], ...]. A completed quarter has
+ * fixed = 1, so the back-test is untouched.
+ */
+export function quarterRate(printed, forecast, q, kern, phi, asof) {
+  const { tce: pr } = kernelQuarter(printed, q, kern);
+  const s = fixedShare(asof, q, phi);
+  if (!forecast || !forecast.length) return pr;
+  const anchor = Math.max(...printed.filter(p => p[1] !== null).map(p => p[0]));
+  const [qs, qe] = quarterBounds(q);
+  const { a, b, factor = 1 } = kern;
+  const fwd = new Map(forecast);
+  let num = 0, den = 0;
+  for (const [t, r] of fwd) {
+    if (t <= anchor || r === null) continue;
+    const st = t + a * DAY, en = st + b * DAY;
+    const ov = Math.max(0, (Math.min(en, qe) - Math.max(st, qs)) / DAY);
+    if (ov <= 0) continue;
+    num += ov * r; den += ov;
+  }
+  const cr = den ? (num / den) * factor : null;
+  if (pr === null) return cr;
+  if (cr === null) return pr;
+  return s * pr + (1 - s) * cr;
 }
 
 // --- 3. coverage model ------------------------------------------------------
