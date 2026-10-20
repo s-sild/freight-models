@@ -87,7 +87,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
 </div>
 
 <script type="module">
-import { parseCSV, num, blend, kernelQuarter, coveredShare, quarterBounds, uplift, FcfModel, fmt } from "../../core/model.js";
+import { parseCSV, num, blend, kernelQuarter, covered, quarterBounds, uplift, FcfModel, fmt } from "../../core/model.js";
 import { lineChart } from "../../core/viz.js";
 
 const DAY = 86400000;
@@ -130,16 +130,16 @@ const nextQ = cfg.quarters_12m[0];
 const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
 const qV = kernelQuarter(VU, nextQ, kv), qS = kernelQuarter(SU, nextQ, ks);
 
-// How much of it is already fixed. This is the covered-share estimate built on
-// Frontline's own disclosures, not the kernel's locked share — the latter only
-// says whether an index printed, has no company meaning, and was measured to
-// carry no relation to forecast error. It stays inside the kernel as a weight
-// and is never shown. See notes.md.
+// How much of it is already contracted: the kernel's own fill, scaled down by
+// the slice of the fleet that is not fixed at all. The raw fill reads ~100% a
+// month before the report against the 68-92% Frontline states — that gap is
+// idle capacity, not timing. See notes.md and config idle_fraction.
 const today = Date.now();
 const [qsMs, qeMs] = quarterBounds(nextQ);
 const qLen = Math.round((qeMs - qsMs) / DAY);
 const qDay = Math.max(0, Math.min(qLen, Math.round((today - qsMs) / DAY)));
-const covNow = coveredShare(today, nextQ, cfg.coverage_estimate.phi);
+const IDLE = cfg.idle_fraction.value;
+const covNow = covered(VU, nextQ, kv, IDLE);
 
 // ---- forward market ------------------------------------------------------
 const tcV = num(tc.vlcc_1yr_tc), tcS = num(tc.smax_1yr_tc), tcA = num(tc.afra_1yr_tc);

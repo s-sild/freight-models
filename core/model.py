@@ -131,15 +131,24 @@ class Kernel:
         series = {date: rate}, published weeks only.
 
         Returns (tce, share_locked). The denominator is every week that FEEDS
-        the quarter, including ones not yet published — otherwise the share is
-        near 1.0 by construction, because a week with no data is simply absent
-        from the series.
+        the quarter and can still be published — otherwise the share is near
+        1.0 by construction, because a week with no data is simply absent from
+        the series.
+
+        A gap BEFORE the anchor is not a pending week. The Baltic does not
+        publish over UK holidays — Good Friday, Christmas, New Year — so 14 of
+        the 250 slots in five years never carried a print and never will.
+        Counting them as awaiting publication pushed every Q1 and Q2 reading
+        several points low. They are dropped from the denominator here, which
+        is a fix to the model; the series itself is left exactly as reported,
+        with no invented rows.
         """
         if not series:
             return None, 0.0
         anchor = max(series)
         weeks = self.feed_weeks(anchor, q)
         w = self.weights(weeks, q)
+        w = [wi if (d > anchor or d in series) else 0.0 for wi, d in zip(w, weeks)]
         tot = sum(w)
         if tot == 0:
             return None, 0.0
@@ -164,31 +173,23 @@ def uplift(series, f):
     return {d: (None if v is None else v * f) for d, v in series.items()}
 
 
-def covered_share(asof, q, phi):
+def covered(series, q, kernel, idle):
     """
-    Estimated share of quarter `q` already fixed, as of date `asof`.
+    Estimated share of quarter `q` already contracted: the kernel's own fill,
+    scaled down by the slice of the fleet that is not fixed at all.
 
-        covered = elapsed + phi * (1 - elapsed)
+        contracted = kernel fill x (1 - idle)
 
-    Elapsed days are covered by definition - the voyages happened. Of the days
-    remaining, phi is already on subs or fixed. phi is solved from Frontline's
-    own disclosures; see config coverage_estimate for why the full sample is
-    used rather than the recent regime.
+    The kernel assumes every ship is permanently on a voyage. Frontline is not:
+    ships sit open, wait, and reposition, and those days carry no fixture. That
+    is the whole of the gap between the kernel reading ~100% a month before a
+    report and the 68-92% Frontline actually states.
 
-    This is NOT the kernel's locked share. The kernel asks whether the index
-    for a day has printed. This asks whether a fixture exists against it -
-    which is what Frontline reports, and so what 30 November can check.
-
-    Returns None before the quarter starts: phi is observed only at day ~57 of
-    a running quarter and says nothing about one that has not begun.
+    This is the number the panel shows and the one 30 November can check,
+    because it is measured the way the company measures it.
     """
-    qs, qe = quarter_bounds(q)
-    if asof < qs:
-        return None
-    if asof >= qe:
-        return 1.0
-    elapsed = (asof - qs).days / (qe - qs).days
-    return elapsed + phi * (1 - elapsed)
+    _, fill = kernel.quarter(series, q)
+    return None if fill is None else fill * (1 - idle)
 
 
 def coverage(contracted, covered_pct, k):

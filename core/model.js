@@ -70,8 +70,12 @@ export function kernelQuarter(series, q, { a, b, factor = 1 }) {
     const s = t + a * DAY, e = s + b * DAY;
     const ov = Math.max(0, (Math.min(e, qe) - Math.max(s, qs)) / DAY);
     if (ov <= 0) continue;
-    total += ov;
     const r = have.get(t);
+    // A gap BEFORE the anchor is a week the Baltic never published — UK
+    // holidays — not one still pending. It is not awaiting a print, so it is
+    // not in the denominator. Weeks after the anchor are genuinely pending.
+    if (r === undefined && t <= anchor) continue;
+    total += ov;
     if (r !== undefined) { known += ov; acc += ov * r; }
   }
   if (!known) return { tce: null, locked: 0 };
@@ -88,21 +92,16 @@ export const uplift = (series, f) =>
 
 // --- 3a. covered share ------------------------------------------------------
 /**
- * Estimated share of quarter q already fixed as of `asof` (ms timestamp):
- *     covered = elapsed + phi * (1 - elapsed)
- * Elapsed days are covered by definition; phi of the remainder is already
- * fixed. Solved from Frontline's 18 disclosures — see config coverage_estimate.
- *
- * Not the kernel's locked share: that asks whether the index for a day has
- * printed, this asks whether a fixture exists against it. Null before the
- * quarter starts, where phi carries no information.
+ * Estimated share of quarter q already contracted: the kernel's fill scaled by
+ * the slice of the fleet that is not fixed at all.
+ *     contracted = kernel fill x (1 - idle)
+ * The kernel assumes permanent employment; Frontline does not have it. Without
+ * this the model reads ~100% a month before the report against the 68-92% the
+ * company states. See config idle_fraction.
  */
-export function coveredShare(asof, q, phi) {
-  const [qs, qe] = quarterBounds(q);
-  if (asof < qs) return null;
-  if (asof >= qe) return 1;
-  const elapsed = (asof - qs) / (qe - qs);
-  return elapsed + phi * (1 - elapsed);
+export function covered(series, q, kern, idle) {
+  const { locked } = kernelQuarter(series, q, kern);
+  return locked === null || locked === undefined ? null : locked * (1 - idle);
 }
 
 // --- 3. coverage model ------------------------------------------------------

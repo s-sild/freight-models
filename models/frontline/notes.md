@@ -111,76 +111,81 @@ and the unsettled ones stay visible.
   Caveats: n=14, bands are coarse enough that a quarter can skip one, and the
   kernel parameters were fitted on 2025Q4–2026Q2, so this is not out-of-sample.
 
-- **BUG — the kernel fills a quarter far too fast. Must be fixed.** Raised
-  19 Oct 2026. On day 19 of Q4 the kernel reports 73.9% of the quarter's
-  earning days determined. Frontline's Q2 slide reports **86% of Q3 contracted
-  on 28 August — day 59** — where the kernel says 100%. The fill curve is wrong,
-  not the level at one date.
+- **The kernel filled a quarter too fast — fixed 20 Oct 2026.** On day 19 of
+  Q4 it read 73.9% determined; Frontline's Q2 slide reports 86% of Q3
+  contracted on 28 August, day 59, where the kernel said 100%. An over-fast
+  fill is anti-conservative in a falling market, which is the opposite of this
+  model's job.
 
-  Why it matters, and it is not cosmetic: an over-fast fill is **anti-conservative
-  in a falling market**. It says three quarters of the quarter is safe at
-  today's high rates when most of it still has to be fixed at whatever the
-  market gives. The model's job is to produce a conservative reference point
-  and it does the opposite.
+  Two wrong explanations, both mine, both killed by the slide itself.
+  *Different denominators*: dead — the header reads "Reported earnings basis
+  load to discharge", the same basis the kernel uses. *A reporting cut-off
+  lag of ~21 days*: found by grid search at MAE 3.7pts with L=76, the observed
+  fixture mean, and it was convincing — dead, the column reads "currently
+  contracted".
 
-  **Two explanations tested and killed on 19 Oct.** Both were mine; both were
-  wrong.
-  1. *Different denominators — FRO counts ballast, the kernel counts earning
-     days.* Dead: the slide header says **"Reported earnings basis load to
-     discharge"**, the same basis the kernel uses.
-  2. *The disclosure is as of a cut-off before publication, ~21 days.* Found by
-     grid search, MAE 3.7pts at L=76 — the observed fixture mean — which looked
-     compelling. Dead: the column says **"Q3 2026 spot TCE currently
-     contracted"**. Currently. No lag.
+  **It was utilisation, not schedule.** At day 57, days 0-57 are 62%; reaching
+  86% needs 22 of the remaining 35 already fixed, and with an 80-day voyage
+  those are covered by ships fixed around day 25, which have fixed. No voyage
+  length produces 86%: a longer voyage reaches further forward, not less. The
+  missing days are ships not fixed at all — open, waiting, repositioning. Q2
+  slide 11, the company's own words: *"Avg Non-Laden Days per VLCC Voyage
+  +23%"*, *"Idling accumulated east of Suez, capacity present but not
+  contestable for the Atlantic cargoes."*
 
-  So the disclosure is a valid calibration target on a matched basis and matched
-  date, and the kernel misses it by 14 points.
+  `contracted = kernel fill x (1 - idle)`, idle = **0.21** fitted on all 18
+  disclosures: **3.98pts mean absolute, -0.75 bias**, against 15.5 for the raw
+  fill. Q4 now reads 61% rather than 77%.
 
-  **What every attempt has in common.** A rectangular kernel and a
-  commitment-decay model both need a horizon near **30 days** to reproduce the
-  disclosures, against Frontline's own logged round voyages of 34-120 days,
-  mean 76 (`fro_fixtures.csv`). Fitting the disclosure demands a schedule that
-  cannot physically exist. That consistency across two unrelated functional
-  forms is a clue and is not yet understood. Candidate not yet tested: the
-  binding horizon may be the **laycan lead time** - how far ahead cargoes are
-  fixed, typically weeks - rather than the voyage length.
+- **Holiday weeks are not pending weeks — model fix, not a data fix.** The
+  Baltic is a London exchange and does not publish over UK holidays: 14 of 250
+  weekly slots in five years, every Good Friday and Christmas/New Year, plus
+  the June 2022 Jubilee. The kernel built a synthetic 7-day grid and counted
+  those as weeks still awaiting publication, pushing every Q1 and Q2 fill
+  several points low — which is where the Q1-shaped residuals came from.
 
-  **A dated parameter the model ignores.** Same report, slide 11: *"Avg
-  Non-Laden Days per VLCC Voyage +23%"*, *"Days without cargo lengthened
-  structurally as load areas shifted west, waiting times grew"*, *"Idling
-  accumulated east of Suez"*. The kernel holds `a` fixed at 32 across
-  2024Q1-2026Q2 while the company says ballast is growing structurally. Note
-  `a` was fitted across that same window so it already absorbs part of the
-  rise - scaling it to 39 would double-count. The honest fix is a time-varying
-  `a`, which is a rebuild, not a tweak.
+  Fixed in `Kernel.quarter`: a gap *before* the anchor is dropped from the
+  denominator; gaps *after* it are genuinely pending. Completed quarters
+  spanning a holiday now fill to exactly 1.0.
 
-  **First real lead, 19 Oct: it is utilisation, not schedule.** Work the
-  arithmetic by hand at day 57 of a 92-day quarter. Days 0-57 have happened:
-  62%. Reaching 86% needs 22 of the remaining 35 days already fixed. With an
-  80-day voyage those late days are covered by ships fixed around day 25, which
-  have fixed — which is exactly why the kernel reads ~100%. **No voyage length
-  produces 86%**, because a longer voyage reaches further forward, not less.
-  Every attempt to shorten the schedule was trying to fix a utilisation problem
-  with a timing parameter.
+  **I first "fixed" this by interpolating the 14 missing weeks into
+  `baltic_weekly.csv`. That was wrong and was reverted.** It invented rates for
+  weeks that were never assessed, breaking rule 1. The series carries exactly
+  one interpolated row, 2026-08-14, agreed separately. When the defect is in
+  the model, fix the model.
 
-  The missing days are not ships yet to be fixed. They are ships not fixed at
-  all — open, waiting, idle. The kernel assumes permanent employment. Slide 11
-  says otherwise in the company's own words.
+- **a and b are a lag and a recognition spread, not ballast and laden.**
+  Settled 20 Oct after four rounds of confusion. Their **sum** is physical:
+  a+b = 80 for VLCC, against a round voyage of 87 implied by our logged
+  fixtures, 80 from the free fit, and 76 from the fixture mean. The **split**
+  is not: fitting it to physical voyage values roughly doubles the rate error.
 
-  Fitting `contracted = kernel_fill x (1 - idle)` across the 18 disclosures
-  gives **idle 18%, MAE 6.6pts** against the raw kernel's 15.5. Q4 today reads
-  60.6% rather than 73.9%.
+  | a / b | basis | cov MAE | TCE MAE | Q4 now |
+  |---|---|---|---|---|
+  | 42/45 | Baltic ratio + our fixtures | 4.3p | 7.9% | 70% |
+  | 25/55 | **adopted** | 4.0p | 5.6% | 61% |
+  | 14/66 | free fit | 3.7p | 4.1% | 57% |
 
-  Progress, not a solution: 6.6pts is still well short of `covered_share`'s
-  3.85, and the residuals keep a clear shape — every large miss is a **Q1
-  quarter** (-17.8, -11.6, -10.8, -22.8), where the kernel reads 84% and
-  Frontline reports 80-92%. The kernel's fill swings 84% to 100% with how the
-  calendar falls against its window; the disclosures sit in a tight band
-  regardless. Something still imposes a calendar sensitivity that reality does
-  not have. That is the next thread.
+  Load-to-discharge evidence, since it is the one physically checkable piece:
+  the Baltic's own TD3C method is 5,897nm laden at 13.0kn = 18.9 days plus 2
+  load and 3 discharge days — 24.0 days against a 46.5-day round voyage, a
+  ratio of 0.516. Applied to our fixtures: Atlantic 92.8d → 47.9d, MEG 41.5d →
+  21.4d against the Baltic's own 24.0 for a standard MEG voyage, an 11% check.
+  Blended 0.88/0.12 that is a 44.7-day load-to-discharge. So the physical b is
+  ~45 — and it fits worst. Hence the renaming.
 
-  Until this is fixed, do not read the forecast table's current-quarter figure
-  as conservative.
+- **The Suezmax basket is not one consistent series.** Found 20 Oct. The blend
+  is the mean of the routes *present* in a week — a blank is excluded, never
+  zeroed, which is correct and deliberate. But of 236 weeks only **11 carry all
+  three routes**; 133 are TD20 alone and 99 are TD20+TD27. TD33 first appears
+  2026-08-07, so every back-test quarter through 2026Q2 was fitted on a basket
+  that never contained it.
+
+  Measured on the 11 weeks where all three exist, TD20 alone runs -0.21% mean
+  and 1.99% mean absolute against the full basket, worst case +5.5%. Small —
+  but n=11, all from one regime, and the Suezmax kernel, its 1.03 uplift and
+  every Suezmax figure on the panel rest on it. Backfilling TD27 and TD33 from
+  the archived weeklies is the real fix and is **open**.
 
 - **Fleet-quality haircut — the live question.** Fearnleys quotes 1-yr T/C for
   modern eco/scrubber tonnage; this fleet is older. At T/C rates the stock
