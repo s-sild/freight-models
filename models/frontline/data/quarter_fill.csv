@@ -1,7 +1,52 @@
 quarter,segment,cov_pct_at_report,contracted_rate,actual_spot_days,covered_days,uncovered_days,earned_covered_kusd,earned_uncovered_kusd,earned_total_kusd,realised_tce,source
-2026Q2,VLCC,82,181700,2212,1814,398,329575,8266,337841,152731,"coverage and contracted rate from the Q1-26 report 22 May; actual spot days and realised TCE from the Q2-26 report 28 Aug"
-2026Q2,Suezmax,79,131300,1746,1379,367,181107,13485,194592,111450,"as above"
-2026Q2,Aframax,68,125000,1488,1012,476,126480,10977,137457,92377,"as above; LR2/Aframax segment"
-2026Q1,VLCC,92,107100,2947,2711,236,290374,14622,304996,103494,"coverage and contracted rate from the Q4-25 report 27 Feb; actual spot days and realised TCE from the Q1-26 report 22 May"
-2026Q1,Suezmax,83,76700,1794,1489,305,114208,15727,129935,72428,"as above"
-2026Q1,Aframax,67,62400,1471,986,485,61500,13125,74625,50731,"as above; LR2/Aframax segment"
+2022Q2,VLCC,74,22600,1612,1193,419,26962,-525,26437,16400,coverage and contracted rate from the 2022Q1 report; days and realised TCE from the 2022Q2 report
+2022Q2,Suezmax,70,32700,1890,1323,567,43262,6823,50085,26500,coverage and contracted rate from the 2022Q1 report; days and realised TCE from the 2022Q2 report
+2022Q2,Aframax,58,46300,1567,909,658,42087,18399,60486,38600,coverage and contracted rate from the 2022Q1 report; days and realised TCE from the 2022Q2 report
+2022Q3,VLCC,73,28100,1698,1240,458,34844,7606,42450,25000,coverage and contracted rate from the 2022Q2 report; days and realised TCE from the 2022Q3 report
+2022Q3,Suezmax,73,45000,2141,1563,578,70335,17660,87995,41100,coverage and contracted rate from the 2022Q2 report; days and realised TCE from the 2022Q3 report
+2022Q3,Aframax,62,46200,1512,937,575,43289,17493,60782,40200,coverage and contracted rate from the 2022Q2 report; days and realised TCE from the 2022Q3 report
+2022Q4,VLCC,75,77200,1870,1402,468,108234,9950,118184,63200,coverage and contracted rate from the 2022Q3 report; days and realised TCE from the 2022Q4 report
+2022Q4,Suezmax,76,65400,2462,1871,591,122363,20187,142550,57900,coverage and contracted rate from the 2022Q3 report; days and realised TCE from the 2022Q4 report
+2022Q4,Aframax,70,58000,1433,1003,430,58174,26086,84260,58800,coverage and contracted rate from the 2022Q3 report; days and realised TCE from the 2022Q4 report
+2023Q1,VLCC,87,58300,1909,1661,248,96836,3386,100222,52500,coverage and contracted rate from the 2022Q4 report; days and realised TCE from the 2023Q1 report
+2023Q1,Suezmax,77,72400,2384,1836,548,132926,19650,152576,64000,coverage and contracted rate from the 2022Q4 report; days and realised TCE from the 2023Q1 report
+2023Q1,Aframax,68,63900,1398,951,447,60769,17938,78707,56300,coverage and contracted rate from the 2022Q4 report; days and realised TCE from the 2023Q1 report
+2023Q2,VLCC,78,75000,1971,1537,434,115275,10869,126144,64000,coverage and contracted rate from the 2023Q1 report; days and realised TCE from the 2023Q2 report
+2023Q2,Suezmax,71,65000,2344,1664,680,108160,36465,144625,61700,coverage and contracted rate from the 2023Q1 report; days and realised TCE from the 2023Q2 report
+2023Q2,Aframax,63,65700,1328,837,491,54991,15260,70251,52900,coverage and contracted rate from the 2023Q1 report; days and realised TCE from the 2023Q2 report
+2023Q3,VLCC,74,53200,2014,1490,524,79268,6327,85595,42500,coverage and contracted rate from the 2023Q2 report; days and realised TCE from the 2023Q3 report
+2023Q3,Suezmax,67,48800,2282,1529,753,74615,11188,85803,37600,coverage and contracted rate from the 2023Q2 report; days and realised TCE from the 2023Q3 report
+2023Q3,Aframax,57,40500,1283,731,552,29606,13888,43494,33900,coverage and contracted rate from the 2023Q2 report; days and realised TCE from the 2023Q3 report
+2023Q4,VLCC,81,48100,1975,1600,375,76960,6582,83542,42300,coverage and contracted rate from the 2023Q3 report; days and realised TCE from the 2023Q4 report
+2023Q4,Suezmax,70,50300,2130,1491,639,74997,22344,97341,45700,coverage and contracted rate from the 2023Q3 report; days and realised TCE from the 2023Q4 report
+2023Q4,Aframax,70,51300,1285,899,386,46119,9007,55126,42900,coverage and contracted rate from the 2023Q3 report; days and realised TCE from the 2023Q4 report
+2024Q1,VLCC,81,55100,3854,3122,732,172022,13355,185377,48100,coverage and contracted rate from the 2023Q4 report; days and realised TCE from the 2024Q1 report
+2024Q1,Suezmax,72,52800,2218,1597,621,84322,17262,101584,45800,coverage and contracted rate from the 2023Q4 report; days and realised TCE from the 2024Q1 report
+2024Q1,Aframax,69,67800,1268,875,393,59325,9527,68852,54300,coverage and contracted rate from the 2023Q4 report; days and realised TCE from the 2024Q1 report
+2024Q2,VLCC,78,60400,3673,2865,808,173046,9135,182181,49600,coverage and contracted rate from the 2024Q1 report; days and realised TCE from the 2024Q2 report
+2024Q2,Suezmax,73,46400,2005,1464,541,67930,23498,91428,45600,coverage and contracted rate from the 2024Q1 report; days and realised TCE from the 2024Q2 report
+2024Q2,Aframax,72,64700,1267,912,355,59006,8272,67278,53100,coverage and contracted rate from the 2024Q1 report; days and realised TCE from the 2024Q2 report
+2024Q3,VLCC,79,47400,3651,2884,767,136702,7878,144580,39600,coverage and contracted rate from the 2024Q2 report; days and realised TCE from the 2024Q3 report
+2024Q3,Suezmax,85,41900,2023,1720,303,72068,8650,80718,39900,coverage and contracted rate from the 2024Q2 report; days and realised TCE from the 2024Q3 report
+2024Q3,Aframax,65,50100,1282,833,449,41733,4419,46152,36000,coverage and contracted rate from the 2024Q2 report; days and realised TCE from the 2024Q3 report
+2024Q4,VLCC,77,44300,3635,2799,836,123996,6500,130496,35900,coverage and contracted rate from the 2024Q3 report; days and realised TCE from the 2024Q4 report
+2024Q4,Suezmax,70,39600,1912,1338,574,52985,10685,63670,33300,coverage and contracted rate from the 2024Q3 report; days and realised TCE from the 2024Q4 report
+2024Q4,Aframax,60,34800,1285,771,514,26831,6707,33538,26100,coverage and contracted rate from the 2024Q3 report; days and realised TCE from the 2024Q4 report
+2025Q1,VLCC,80,43400,3582,2866,716,124384,8866,133250,37200,coverage and contracted rate from the 2024Q4 report; days and realised TCE from the 2025Q1 report
+2025Q1,Suezmax,77,41400,1883,1450,433,60030,-1280,58750,31200,coverage and contracted rate from the 2024Q4 report; days and realised TCE from the 2025Q1 report
+2025Q1,Aframax,64,42300,1244,796,448,33671,-5930,27741,22300,coverage and contracted rate from the 2024Q4 report; days and realised TCE from the 2025Q1 report
+2025Q2,VLCC,68,56400,3586,2438,1148,137503,17054,154557,43100,coverage and contracted rate from the 2025Q1 report; days and realised TCE from the 2025Q2 report
+2025Q2,Suezmax,69,44900,1854,1279,575,57427,14694,72121,38900,coverage and contracted rate from the 2025Q1 report; days and realised TCE from the 2025Q2 report
+2025Q2,Aframax,66,36100,1420,937,483,33826,7780,41606,29300,coverage and contracted rate from the 2025Q1 report; days and realised TCE from the 2025Q2 report
+2025Q3,VLCC,82,38700,3563,2922,641,113081,9130,122211,34300,coverage and contracted rate from the 2025Q2 report; days and realised TCE from the 2025Q3 report
+2025Q3,Suezmax,76,37200,1901,1445,456,53754,12971,66725,35100,coverage and contracted rate from the 2025Q2 report; days and realised TCE from the 2025Q3 report
+2025Q3,Aframax,73,36600,1458,1064,394,38942,6839,45781,31400,coverage and contracted rate from the 2025Q2 report; days and realised TCE from the 2025Q3 report
+2025Q4,VLCC,75,83300,3566,2674,892,222744,41853,264597,74200,coverage and contracted rate from the 2025Q3 report; days and realised TCE from the 2025Q4 report
+2025Q4,Suezmax,75,60600,1837,1378,459,83507,15324,98831,53800,coverage and contracted rate from the 2025Q3 report; days and realised TCE from the 2025Q4 report
+2025Q4,Aframax,51,42200,1477,753,724,31777,17703,49480,33500,coverage and contracted rate from the 2025Q3 report; days and realised TCE from the 2025Q4 report
+2026Q1,VLCC,92,107100,2947,2711,236,290348,14666,305014,103500,coverage and contracted rate from the 2025Q4 report; days and realised TCE from the 2026Q1 report
+2026Q1,Suezmax,83,76700,1794,1489,305,114206,15680,129886,72400,coverage and contracted rate from the 2025Q4 report; days and realised TCE from the 2026Q1 report
+2026Q1,Aframax,67,62400,1471,986,485,61526,13054,74580,50700,coverage and contracted rate from the 2025Q4 report; days and realised TCE from the 2026Q1 report
+2026Q2,VLCC,82,181700,2212,1814,398,329604,8168,337772,152700,coverage and contracted rate from the 2026Q1 report; days and realised TCE from the 2026Q2 report
+2026Q2,Suezmax,79,131300,1746,1379,367,181063,13616,194679,111500,coverage and contracted rate from the 2026Q1 report; days and realised TCE from the 2026Q2 report
+2026Q2,Aframax,68,125000,1488,1012,476,126500,10991,137491,92400,coverage and contracted rate from the 2026Q1 report; days and realised TCE from the 2026Q2 report
