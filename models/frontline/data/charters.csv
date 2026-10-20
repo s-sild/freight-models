@@ -1,0 +1,10 @@
+agreed,vessels,segment,rate_usd_day,term_years,rate_structure,commenced,note,source
+2026-01,7,VLCC,76900,1,flat,"2026Q1 (3 vessels), 2026-04 (4 vessels)",built 2016-2018; rate is the average across the seven,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-02,1,VLCC,93500,1,flat,2026-02 late,built 2019,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-04,2,VLCC,110000,1,flat,2026-05 early and late,newbuildings delivered 2026-04-30 and 2026-05-20,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-05,2,VLCC,120000,1,flat,2026-06 late and 2026-07 early,newbuildings delivered 2026-06-22 and 2026-07-03,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-07,1,VLCC,90000,2,110000 yr1 / 70000 yr2,2026-08 early,built 2016; rate shown is the average,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-07,1,VLCC,75000,3,110000 yr1 / 70000 yr2 / 45000 yr3,2026-08 late,built 2016; rate shown is the average,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+,1,VLCC,,,,,pre-existing; initial period ends 2027Q3; rate not disclosed,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+,1,Suezmax,,,,,pre-existing; initial period ends 2027Q2; rate not disclosed,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+,1,LR2/Aframax,,,,,pre-existing; initial period ends 2026Q3; rate not disclosed,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"

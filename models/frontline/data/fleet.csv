@@ -1,1 +1,7 @@
-vessel,segment,build_year,dwt,source
+as_of,source_report,owned_vessels,vlcc,suezmax,lr2_aframax,dwt_m,avg_age_yrs,tc_out_total,tc_out_vlcc,tc_out_suezmax,tc_out_lr2,basis,source
+2025-06-30,2025Q2,81,41,22,18,17.8,7.1,4,1,1,2,as reported,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2025-09-30,2025Q3,80,41,21,18,17.6,7.2,3,1,1,1,as reported,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2025-12-31,2025Q4,80,41,21,18,17.6,7.5,3,1,1,1,as reported,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-03-31,2026Q1,72,33,21,18,15.2,7.5,7,5,1,1,as reported,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+2026-08-28,2026Q2,,,,,,,17,15,1,1,TC-out count as of the report date; fleet counts not disclosed at that date,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
+,2026Q2,77,40,19,18,17.1,6.6,,,,,pro forma on delivery of remaining VLCC newbuildings and sale of two VLCCs,"Frontline quarterly reports, 'The Fleet' section, retrieved 2026-10-20"
