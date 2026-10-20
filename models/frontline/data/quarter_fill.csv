@@ -1,0 +1,7 @@
+quarter,segment,cov_pct_at_report,contracted_rate,actual_spot_days,covered_days,uncovered_days,earned_covered_kusd,earned_uncovered_kusd,earned_total_kusd,realised_tce,source
+2026Q2,VLCC,82,181700,2212,1814,398,329575,8266,337841,152731,"coverage and contracted rate from the Q1-26 report 22 May; actual spot days and realised TCE from the Q2-26 report 28 Aug"
+2026Q2,Suezmax,79,131300,1746,1379,367,181107,13485,194592,111450,"as above"
+2026Q2,Aframax,68,125000,1488,1012,476,126480,10977,137457,92377,"as above; LR2/Aframax segment"
+2026Q1,VLCC,92,107100,2947,2711,236,290374,14622,304996,103494,"coverage and contracted rate from the Q4-25 report 27 Feb; actual spot days and realised TCE from the Q1-26 report 22 May"
+2026Q1,Suezmax,83,76700,1794,1489,305,114208,15727,129935,72428,"as above"
+2026Q1,Aframax,67,62400,1471,986,485,61500,13125,74625,50731,"as above; LR2/Aframax segment"
