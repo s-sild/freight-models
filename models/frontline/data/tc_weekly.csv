@@ -8,3 +8,4 @@ week_ending,vlcc_1yr_tc,smax_1yr_tc,afra_1yr_tc,vlcc_fixtures,vlcc_meg_avail_30d
 2026-10-02,183000,137000,,,,"Fearnleys 1-yr T/C, via tracker"
 2026-10-09,230000,165000,,,,"Fearnleys 1-yr T/C, via tracker"
 2026-10-15,225000,165000,100000,50,99,Fearnleys weekly
+2026-10-21,220000,165000,100000,31,105,Fearnleys weekly week 43; vlcc_fixtures = VLCCs fixed in all areas last week
