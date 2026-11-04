@@ -283,10 +283,12 @@ document.getElementById("tiles").innerHTML = `
        and does not move. The live quarter is printed weeks at their published
        rate plus the forward curve, weighted by the kernel — it moves with the
        preset, and matches the forecast table's row. -->
-  <div class="rowline"><span class="muted">${qShort(discQ)} VLCC spot TCE</span><span id="ed-v">—</span></div>
-  <div class="rowline"><span class="muted">${qShort(discQ)} Smax spot TCE</span><span id="ed-s">—</span></div>
-  <div class="rowline" style="margin-top:12px"><span class="muted">${qShort(liveQ)} VLCC spot TCE</span><span id="eq-v">—</span></div>
-  <div class="rowline"><span class="muted">${qShort(liveQ)} Smax spot TCE</span><span id="eq-s">—</span></div>
+  <div class="qrows">
+    <div class="rowline"><span class="muted">${qShort(discQ)} VLCC spot TCE</span><span id="ed-v">—</span></div>
+    <div class="rowline"><span class="muted">${qShort(discQ)} Smax spot TCE</span><span id="ed-s">—</span></div>
+    <div class="rowline part"><span class="muted">${qShort(liveQ)} VLCC spot TCE</span><span id="eq-v">—</span></div>
+    <div class="rowline"><span class="muted">${qShort(liveQ)} Smax spot TCE</span><span id="eq-s">—</span></div>
+  </div>
   <div class="note" style="margin-top:8px">Per available spot day, ballast to discharge.</div>
 </div>
 

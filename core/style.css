@@ -113,6 +113,11 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
 /* Inter is drawn loose for body copy; the display numbers read better pulled in. */
 .hero { letter-spacing: -0.018em; }
 h2 { letter-spacing: -0.009em; }
+/* Estimates tile: the four rate rows are two pairs, not four peers. No rule
+   between the two rows of one quarter — a single partition divides Q3 from Q4,
+   and every row keeps the same height, so the grouping is the only signal. */
+.qrows .rowline + .rowline { border-top: 0; }
+.qrows .rowline.part { border-top: 1px solid var(--line); }
 .muted { color: var(--text-muted); }
 /* Derived rows — ratios and averages computed from the rows above them, not
    assessments in their own right. Italic so the eye separates them from the
