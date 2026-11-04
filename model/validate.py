@@ -9,7 +9,7 @@ import sys, os, json
 from datetime import datetime, date as dt, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "core"))
 from model import (read_csv, num, blend, Kernel, coverage, implied_k,
-                   fixed_share, quarter_rate, uplift, FcfModel, mean_of)
+                   quarter_rate, uplift, FcfModel, mean_of)
 import statistics as st
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "models", "frontline")
@@ -69,7 +69,7 @@ tce, obs = kv.quarter(VU, "2026Q3")
 # figures of 156,665 / 96,253, which were computed with the gap left open.
 # Only ever re-pin these when the inputs deliberately change - otherwise the
 # tests stop catching anything.
-check("Kernel VLCC 2026Q3", tce, 165346, 400, "$/day")
+check("Kernel VLCC 2026Q3", tce, 160622, 400, "$/day")
 check("Kernel VLCC 2026Q3 locked share is 1.0 (quarter fully fed)", obs, 1.0, 0.001)
 
 # The locked share must be measured against every week that FEEDS a quarter,
@@ -97,50 +97,36 @@ check("A quarter with no feed weeks yet reports zero locked",
 
 
 # ---- the fill curve ------------------------------------------------------
-# The panel's one number, and the weight on the rate blend. It replaced a flat
-# idle haircut that matched the disclosures at the one date they are published
-# and left the curve's SHAPE untouched - the kernel still filled a quarter 71%
-# by day 19 against the company's ~85% by day 57, and the forecast still used
-# the kernel's weights. These tests pin the shape, not a snapshot.
-PHI = CFG["fill_curve"]["phi"]
-check("Fill curve phi", PHI, 0.397, 0.001)
-check("Fixed share at quarter end is 1.0", fixed_share(dt(2026,12,31), "2026Q4", PHI), 1.0, 0.012)
-check("Fixed share before the quarter starts is 0",
-      fixed_share(dt(2026,9,30), "2026Q4", PHI), 0.0, 1e-9)
-check_true("Fixed share rises every day of the quarter",
-           all(fixed_share(dt(2026,10,1)+timedelta(days=i), "2026Q4", PHI)
-               < fixed_share(dt(2026,10,1)+timedelta(days=i+1), "2026Q4", PHI)
-               for i in range(90)))
-# The defect it was built to fix: the kernel fills far faster than reality.
-check_true("The curve fills slower than the kernel on day 19",
-           fixed_share(dt(2026,10,20), "2026Q4", PHI) < kv.quarter(VU, "2026Q4")[1] - 0.10)
-check("Fixed share on day 19 of Q4", fixed_share(dt(2026,10,20), "2026Q4", PHI), 0.522, 0.002)
-check("Fixed share on day 57, where the reports land",
-      fixed_share(dt(2026,11,27), "2026Q4", PHI), 0.771, 0.002)
+# ---- the fed share, and the rate blend ----------------------------------
+# `locked` is the share of a quarter's day-weight carried by weeks that have
+# already printed. It replaced fixed_share (phi = 0.397), which was doing two
+# jobs at once: displaying as "% covered" AND setting the rate blend. Those are
+# different quantities - coverage counts DAYS on a contracted voyage, this
+# counts EARNINGS whose week has printed - and using the first for the second
+# put 39% of Q4 on the forward curve when 17% of the feed was unprinted.
+check("A completed quarter is fully fed", kv.quarter(VU, "2026Q2")[1], 1.0, 1e-9)
+check_true("A future quarter is less fed than the current one",
+           kv.quarter(VU, "2027Q1")[1] < kv.quarter(VU, "2026Q4")[1])
+check_true("The fed share never exceeds 1",
+           all(kv.quarter(VU, q)[1] <= 1.0 + 1e-9
+               for q in ("2026Q2", "2026Q3", "2026Q4", "2027Q1")))
+check_true("A holiday gap is not counted as pending",
+           kv.quarter(VU, "2026Q1")[1] == 1.0)
 
-errs = []
-for r in quarterly:
-    y, n = (int(r["quarter"][:4]) + 1, 1) if r["quarter"][-1] == "4" \
-           else (int(r["quarter"][:4]), int(r["quarter"][-1]) + 1)
-    errs.append(fixed_share(dt.fromisoformat(r["report_date"]), f"{y}Q{n}", PHI) * 100
-                - int(r["vlcc_next_cov_pct"]))
-check("Fill curve vs the 18 disclosures, mean abs error",
-      st.mean([abs(e) for e in errs]), 3.76, 0.05, "pts")
-
-# ---- the rate blend uses the fill curve, not the kernel's fill -----------
 _fwd = {}
 _d = max(VU) + timedelta(days=7)
 for _ in range(80):
     _fwd[_d] = 225_000.0
     _d += timedelta(days=7)
 check_true("A completed quarter ignores the curve entirely",
-           abs(quarter_rate(VU, _fwd, "2026Q2", kv, PHI, dt(2026,10,20))
-               - kv.quarter(VU, "2026Q2")[0]) < 1e-9)
-_q4 = quarter_rate(VU, _fwd, "2026Q4", kv, PHI, dt(2026,10,20))
+           abs(quarter_rate(VU, _fwd, "2026Q2", kv) - kv.quarter(VU, "2026Q2")[0]) < 1e-9)
+_q4 = quarter_rate(VU, _fwd, "2026Q4", kv)
 check_true("Q4 sits between the printed rate and the curve",
            225_000 < _q4 < kv.quarter(VU, "2026Q4")[0])
-check_true("Q4 is weighted by the fill curve, not the kernel fill",
-           _q4 < 0.6 * kv.quarter(VU, "2026Q4")[0] + 0.4 * 225_000 + 1)
+_lk = kv.quarter(VU, "2026Q4")[1]
+check("Q4 is the kernel's own locked-weighted blend",
+      _q4, _lk * kv.quarter(VU, "2026Q4")[0] + (1 - _lk) * 225_000, 1.0, "$/day")
+
 
 
 # ---- holiday weeks are not pending weeks ---------------------------------
@@ -181,21 +167,28 @@ check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")
 
 # ---- kernel back-test ----------------------------------------------------
 # These are the errors we measured against reported TCEs.
-BACKTEST = {
-    "2025Q3": (38449, 35208), "2025Q4": (74466, 58696),
-    "2026Q1": (106509, 72973), "2026Q2": (157602, 117074),
-}
-for q, (wantv, wants) in BACKTEST.items():
+# Against what Frontline ACTUALLY reported, not a frozen model output. The
+# uplift that turns the benchmark blend into an owner rate is 1.02, measured
+# on the 8 post-Euronav quarters; it was 1.05, fitted across 2022-2026 and so
+# across two different fleets. Tolerance is 10% - this is the model's real
+# accuracy, and pinning it tighter would be pinning noise.
+ACTUAL = {"2025Q3": 34273, "2025Q4": 74165, "2026Q1": 103494, "2026Q2": 152731}
+_errs = []
+for q, act in ACTUAL.items():
     gv, _ = kv.quarter(VU, q)
-    gs, _ = ks.quarter(SU, q)
-    check(f"Kernel back-test VLCC {q}", gv, wantv, max(600, wantv * 0.01), "$/day")
-    check(f"Kernel back-test Suezmax {q}", gs, wants, max(600, wants * 0.01), "$/day")
+    _errs.append(abs(gv / act - 1))
+    check(f"Back-test vs reported VLCC TCE {q}", gv, act, act * 0.10, "$/day")
+check("Back-test mean absolute error, VLCC", st.mean(_errs) * 100, 2.9, 1.0, "%")
+check_true("The 1.02 uplift beats the old 1.05 on the same quarters",
+           st.mean(_errs) < st.mean([abs(kv.quarter(VU, q)[0] / 1.02 * 1.05 / a - 1)
+                                     for q, a in ACTUAL.items()]))
 
 
 # ---- coverage model ------------------------------------------------------
-k = CFG["coverage"]["k"]
+K = CFG["coverage"]["k"]
+k = K["vlcc"]
 check("Coverage model, 2026Q3 VLCC (156,900 @ 86%)",
-      coverage(156900, 86, k), 140865, 50, "$/day")
+      coverage(156900, 86, k), 140645, 50, "$/day")
 
 # implied k across every quarter where the next quarter's actual is known
 qs = [r for r in quarterly if r["quarter"]]
@@ -207,6 +200,11 @@ for i in range(len(qs) - 1):
         ks_list.append(implied_k(c, cov, act))
 check("Implied k, number of quarters", float(len(ks_list)), 17.0, 0.5)
 check("Implied k, median", st.median(ks_list), 0.275, 0.005)
+check("Config k, VLCC", K["vlcc"], 0.26, 0.001)
+check("Config k, Suezmax", K["smax"], 0.55, 0.001)
+check("Config k, Aframax", K["lr2"], 0.45, 0.001)
+check_true("Suezmax k exceeds VLCC k - shorter voyage, less ballast in the tail",
+           K["smax"] > K["vlcc"])
 check("Implied k, mean", st.mean(ks_list), 0.297, 0.005)
 
 

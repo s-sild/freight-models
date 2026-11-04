@@ -173,51 +173,31 @@ def uplift(series, f):
     return {d: (None if v is None else v * f) for d, v in series.items()}
 
 
-def fixed_share(asof, q, phi):
+def quarter_rate(printed, forecast, q, kernel):
     """
-    Share of quarter `q` whose rate is already fixed, as of `asof`.
+    A quarter's TCE: printed weeks at their published rate, the rest at the
+    forecast curve, each weighted by the kernel's own day-weights.
 
-        fixed = elapsed + phi x (1 - elapsed)
+        rate = locked x (rate over printed weeks) + (1 - locked) x (rate over the curve)
 
-    Elapsed days are fixed by definition - the voyages happened. Of the days
-    remaining, phi is already on subs. phi is solved from Frontline's own 18
-    disclosed coverage figures.
+    `locked` is the share of the quarter's day-weight carried by weeks that
+    have already printed - the kernel knows it exactly, because it is the same
+    weighting that decides which weeks reach the quarter at all.
 
-    This replaced a flat idle haircut on the kernel's fill. The haircut matched
-    the disclosures at the one date they are published and changed nothing
-    about the SHAPE of the curve: the kernel still reached ~99% by day 57 and
-    71% by day 19, and the rate blend still used those weights. Scaling a wrong
-    curve by a constant leaves it wrong everywhere except the calibration
-    point, and leaves the forecast untouched - which was the whole problem.
+    This replaced `fixed_share`, a curve of the form elapsed + phi(1 - elapsed)
+    with phi = 0.397 fitted to the disclosed coverage figures. That number was
+    doing two different jobs at once: it displayed as "% covered" AND set this
+    blend. They are not the same quantity. Coverage counts DAYS on a contracted
+    voyage - about 79% at day 58. This blend needs the share of the quarter's
+    EARNINGS whose Baltic week has printed - about 97% at day 58, because the
+    uncovered days are mostly ballast and earn roughly a quarter as much.
+    Using the coverage figure here put 39% of Q4 on the forward curve when only
+    17% of the feed was genuinely unprinted.
 
-    This form is right at both ends: it reaches 1.0 at quarter end, where every
-    day has happened, and it rises slowly early.
+    A completed quarter has locked = 1.0, so the back-test is untouched.
     """
-    qs, qe = quarter_bounds(q)
-    if asof <= qs:
-        return 0.0
-    if asof >= qe:
-        return 1.0
-    elapsed = (asof - qs).days / (qe - qs).days
-    return elapsed + phi * (1 - elapsed)
-
-
-def quarter_rate(printed, forecast, q, kernel, phi, asof):
-    """
-    A quarter's TCE, blended by how much of it is actually FIXED rather than by
-    how many Baltic weeks happen to have printed.
-
-        rate = fixed x (rate over printed weeks) + (1 - fixed) x (rate over the curve)
-
-    The kernel still decides WHICH weeks reach the quarter and with what
-    weight. What it no longer decides is how much of the quarter is settled -
-    it filled far too fast, weighting a quarter 71% to printed weeks on day 19
-    when the company reports ~85% fixed only by day 57.
-
-    A completed quarter has fixed = 1.0, so the back-test is untouched.
-    """
-    pr, _ = kernel.quarter(printed, q)
-    s = fixed_share(asof, q, phi)
+    pr, locked = kernel.quarter(printed, q)
+    s = locked
     if not forecast:
         return pr
     anchor = max(printed) if printed else max(forecast)

@@ -87,7 +87,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
 </div>
 
 <script type="module">
-import { parseCSV, num, blend, kernelQuarter, fixedShare, quarterRate, quarterBounds, uplift, FcfModel, fmt } from "../../core/model.js";
+import { parseCSV, num, blend, kernelQuarter, quarterRate, quarterBounds, coverage, uplift, FcfModel, fmt } from "../../core/model.js";
 import { lineChart } from "../../core/viz.js";
 
 const DAY = 86400000;
@@ -97,9 +97,10 @@ const S1 = getComputedStyle(document.documentElement).getPropertyValue("--series
 const S2 = getComputedStyle(document.documentElement).getPropertyValue("--series-2").trim();
 
 const cfg = await (await fetch("config.json")).json();
-const [baltic, tcw, px, quarterly, vvals, fixtures] = await Promise.all(
+const [baltic, tcw, px, quarterly, vvals, fixtures, edays, chart] = await Promise.all(
   ["data/baltic_weekly.csv","data/tc_weekly.csv","data/price.csv",
-   "data/fro_quarterly.csv","data/vessel_values.csv","data/fro_fixtures.csv"].map(get));
+   "data/fro_quarterly.csv","data/vessel_values.csv","data/fro_fixtures.csv",
+   "data/earnings_days.csv","data/charters.csv"].map(get));
 
 // ---- published benchmark series ------------------------------------------
 const mk = seg => baltic
@@ -125,21 +126,60 @@ const price = px.filter(r => num(r.close) !== null).at(-1);
 const close = num(price.close);
 const m = new FcfModel(cfg.fcf);
 
-// ---- next quarter ---------------------------------------------------------
-const nextQ = cfg.quarters_12m[0];
-const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
-const qV = kernelQuarter(VU, nextQ, kv), qS = kernelQuarter(SU, nextQ, ks);
-
-// How much of it is already fixed: elapsed days plus phi of the remainder.
-// NOT the kernel's own fill, which reaches 71% by day 19 and ~99% by day 57
-// against the company's ~85% at day 57. This curve also drives the rate blend
-// below, which is the part that actually matters. See config fill_curve.
+// ---- the quarters ---------------------------------------------------------
+// A quarter is DISCLOSED when Frontline has published a covered rate and a
+// covered % for it — always the nearest unreported quarter, because those
+// figures come out with the previous quarter's report. Those are priced with
+// coverage() and frozen. Everything later is priced with the kernel.
 const today = Date.now();
-const [qsMs, qeMs] = quarterBounds(nextQ);
+const kv = cfg.kernel.vlcc, ks = cfg.kernel.smax;
+const disc = {};
+for (const r of quarterly) {
+  const y = +r.quarter.slice(0,4), n = +r.quarter.slice(-1);
+  const nq = `${y + (n===4?1:0)}Q${n%4+1}`;
+  if (num(r.vlcc_next_contracted) !== null && num(r.vlcc_next_cov_pct) !== null)
+    disc[nq] = { vlcc: [num(r.vlcc_next_contracted), num(r.vlcc_next_cov_pct)],
+                 smax: [num(r.smax_next_contracted), num(r.smax_next_cov_pct)],
+                 lr2:  [num(r.lr2_next_contracted),  num(r.lr2_next_cov_pct)],
+                 from: r.quarter };
+}
+// The tile tracks the first quarter still RUNNING — a finished quarter is
+// 100% fed and tells you nothing.
+const liveQ = cfg.quarters_12m.find(q => quarterBounds(q)[1] > today) ?? cfg.quarters_12m.at(-1);
+const qV = kernelQuarter(VU, liveQ, kv), qS = kernelQuarter(SU, liveQ, ks);
+const [qsMs, qeMs] = quarterBounds(liveQ);
 const qLen = Math.round((qeMs - qsMs) / DAY);
 const qDay = Math.max(0, Math.min(qLen, Math.round((today - qsMs) / DAY)));
-const PHI = cfg.fill_curve.phi;
-const covNow = fixedShare(today, nextQ, PHI);
+// Share of the quarter's EARNINGS whose Baltic week has already printed. Not
+// the same as Frontline's "% covered", which counts DAYS on a contracted
+// voyage — ~79% at day 58, where this reads ~97%, because the uncovered days
+// are mostly ballast and earn about a quarter as much.
+const fedNow = qV.locked;
+
+// ---- TCE -> EPS, for the consensus comparison only -----------------------
+// Frontline discloses expected earnings days by quarter (Q2 2026 report, 12m
+// forward from 28 Aug): spot and time-charter, fleet and VLCC separately.
+// Non-VLCC spot days are split 54/46 Suezmax/LR2, the ratio of 2026Q2 actuals.
+// The TCE -> adjusted-profit gap is calibrated on 2026Q2 and held flat; it is
+// largely fixed cost, but it will understate the gap if the fleet grows.
+const DAYS = {};
+for (const r of edays) (DAYS[r.quarter] ||= {})[r.scope] =
+  { spot: num(r.spot_days), tc: num(r.tc_days) };
+const TC_RATE = (() => {
+  let n = 0, w = 0;
+  for (const r of chart) { const v = num(r.vessels), x = num(r.rate_usd_day);
+    if (v && x) { n += v * x; w += v; } }
+  return w ? n / w : null;
+})();
+const SMX_SHARE = 0.54;
+function epsFor(q, vlcc, smax, lr2) {
+  const d = DAYS[q]; const G = cfg.tce_to_profit;
+  if (!d || !d.VLCC || !d.fleet || !G || TC_RATE === null) return null;
+  const other = d.fleet.spot - d.VLCC.spot;
+  const spot = d.VLCC.spot * vlcc + other * SMX_SHARE * smax + other * (1 - SMX_SHARE) * lr2;
+  const tce = (spot + d.fleet.tc * TC_RATE) / 1e6;
+  return (tce - G.gap_musd) / G.shares_m;
+}
 
 // ---- forward market ------------------------------------------------------
 const tcV = num(tc.vlcc_1yr_tc), tcS = num(tc.smax_1yr_tc), tcA = num(tc.afra_1yr_tc);
@@ -200,15 +240,17 @@ document.getElementById("tiles").innerHTML = `
 </div>
 
 <div class="card">
-  <h2>${nextQ} — covered</h2>
-  <div class="hero">${fmt.pct(covNow,0)}</div>
-  <div class="sub2">of the quarter already fixed, estimated from Frontline's own disclosures</div>
-  <!-- The rate the PRINTED weeks have earned for this quarter — published Baltic
-       only, no forward curve in it. The forecast table's figure for the same
-       quarter blends in the curve preset, so these differ and should. -->
-  <div class="rowline" style="margin-top:8px"><span class="muted">VLCC, rate on printed weeks</span><span>${fmt.usd(qV.tce)}</span></div>
-  <div class="rowline"><span class="muted">Suezmax, rate on printed weeks</span><span>${fmt.usd(qS.tce)}</span></div>
-  <div class="note" style="margin-top:8px">Round-trip basis — ballast already in it.</div>
+  <h2>${liveQ} — fed</h2>
+  <div class="hero">${fmt.pct(fedNow,0)}</div>
+  <div class="sub2">share of the quarter's earnings whose Baltic week has already printed</div>
+  <!-- Expected full-quarter TCE: printed weeks at their published rate, the
+       rest at the forward curve, weighted by the kernel. Same figure as the
+       forecast table's row for this quarter — it moves with the preset. -->
+  <div class="rowline" style="margin-top:8px"><span class="muted">Expected ${liveQ} spot-day TCE, VLCC</span><span id="eq-v">—</span></div>
+  <div class="rowline"><span class="muted">Expected ${liveQ} spot-day TCE, Suezmax</span><span id="eq-s">—</span></div>
+  <div class="note" style="margin-top:8px">Per available spot day, round-trip basis — ballast already in it.
+    Day ${qDay} of ${qLen}. Not the same as Frontline's "% covered", which counts days on a
+    contracted voyage and reads lower.</div>
 </div>
 
 <div class="card">
@@ -344,16 +386,27 @@ function render() {
     <th>FCF/sh</th><th>@${fmt.pct(cfg.required_yields.base,0)}</th>
     <th class="c-y20">@${fmt.pct(cfg.required_yields.alt,0)}</th></tr>`;
   const blend12 = {}; let wsum = 0;
+  const epsBy = {}, liveRates = {};
   for (const q of cfg.quarters_12m) {
 
-    const av = quarterRate(VU, fwd, q, kv, PHI, today);
-    const bv = quarterRate(SU, fwd.map(([t,v]) => [t, v*state.ratio]), q, ks, PHI, today);
+    // A disclosed quarter is priced from Frontline's own covered rate and
+    // covered %, not from the curve — the coverage model back-tests at 3%
+    // against the kernel's 11%. Frozen: the presets cannot move it.
+    const d = disc[q];
+    const av = d ? coverage(d.vlcc[0], d.vlcc[1], cfg.coverage.k.vlcc)
+                 : quarterRate(VU, fwd, q, kv);
+    const bv = d ? coverage(d.smax[0], d.smax[1], cfg.coverage.k.smax)
+                 : quarterRate(SU, fwd.map(([t,v]) => [t, v*state.ratio]), q, ks);
     const a = { tce: av }, b = { tce: bv };
-        const r = { vlcc: a.tce/1000, smax: b.tce/1000, lr2: (a.tce/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc) };
+        const lr2 = d ? coverage(d.lr2[0], d.lr2[1], cfg.coverage.k.lr2)/1000
+                      : (a.tce/1000) * (cfg.fcf.base_rates_kusd_day.lr2 / cfg.fcf.base_rates_kusd_day.vlcc);
+        const r = { vlcc: a.tce/1000, smax: b.tce/1000, lr2 };
     const fps = m.fcfPerShare(r);
     const dq = cfg.vlcc_spot_days_by_quarter[q] || 0;
     wsum += dq; blend12.v = (blend12.v||0) + a.tce*dq; blend12.s = (blend12.s||0) + b.tce*dq;
-    rows += `<tr><td>${q}</td><td>${fmt.usd(a.tce)}</td>
+    liveRates[q] = { v: a.tce, s: b.tce };
+    epsBy[q] = epsFor(q, a.tce, b.tce, lr2*1000);
+    rows += `<tr><td>${q}${d ? ' <span class="muted" style="font-size:11px">disclosed</span>' : ''}</td><td>${fmt.usd(a.tce)}</td>
       <td>${fmt.usd(b.tce)}</td><td>${fmt.usd2(fps)}</td>
       <td>${fmt.usd2(fps/cfg.required_yields.base)}</td>
       <td class="c-y20">${fmt.usd2(fps/cfg.required_yields.alt)}</td></tr>`;
@@ -368,7 +421,23 @@ function render() {
     <tr><td class="muted">vs close ${fmt.usd2(close)}</td><td colspan="3"></td>
     <td class="${f12/cfg.required_yields.base>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.base/close-1,0)}</td>
     <td class="c-y20 ${f12/cfg.required_yields.alt>=close?"up":"down"}">${fmt.signed(f12/cfg.required_yields.alt/close-1,0)}</td></tr>`;
+  // Reference only — consensus is never an input. It is here so a gap this
+  // size cannot go unnoticed again.
+  const C = cfg.consensus?.eps || {};
+  if (cfg.tce_to_profit) {
+    const qs = cfg.quarters_12m;
+    rows += `<tr><td colspan="6" style="padding-top:16px"></td></tr>
+      <tr><th>EPS, model vs consensus</th>${qs.map(q => `<th>${q}</th>`).join("")}<th></th></tr>
+      <tr><td class="muted">model</td>${qs.map(q => `<td>${fmt.usd2(epsBy[q])}</td>`).join("")}<td></td></tr>
+      <tr><td class="muted">consensus</td>${qs.map(q => `<td>${C[q] != null ? fmt.usd2(C[q]) : "—"}</td>`).join("")}<td></td></tr>
+      <tr><td class="muted">ratio</td>${qs.map(q => C[q] ? `<td class="${epsBy[q]/C[q]>1.5?"down":""}">${(epsBy[q]/C[q]).toFixed(1)}&times;</td>` : "<td>—</td>").join("")}<td></td></tr>`;
+  }
   document.getElementById("fc").innerHTML = rows;
+  const liveRow = liveRates[liveQ];
+  if (liveRow) {
+    document.getElementById("eq-v").textContent = fmt.usd(liveRow.v);
+    document.getElementById("eq-s").textContent = fmt.usd(liveRow.s);
+  }
 }
 
 document.getElementById("ctls").addEventListener("input", e => {

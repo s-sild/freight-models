@@ -2,67 +2,120 @@
   "name": "Frontline plc",
   "ticker": "FRO",
   "currency": "USD",
-
   "reporting": {
     "next_report": "2026-11-30",
     "weekly_sources": [
-      {"day": "Friday",    "name": "Baltic Exchange weekly tanker report", "file": "data/baltic_weekly.csv"},
-      {"day": "Wednesday", "name": "Fearnleys weekly",                     "file": "data/tc_weekly.csv"}
+      {
+        "day": "Friday",
+        "name": "Baltic Exchange weekly tanker report",
+        "file": "data/baltic_weekly.csv"
+      },
+      {
+        "day": "Wednesday",
+        "name": "Fearnleys weekly",
+        "file": "data/tc_weekly.csv"
+      }
     ]
   },
-
   "blend": {
-    "vlcc":  {"atlantic": ["TD15", "TD22"], "premium": "TD3C", "premium_weight": 0.12, "factor": 1.0,
-              "note": "MEG weight solved from reported TCE: 10% in 2026Q2, 15% in 2026Q3. 12% adopted."},
-    "smax":  {"atlantic": ["TD20", "TD27", "TD33"], "factor": 1.0,
-              "note": "Mean of the routes PRESENT in the week. A blank route is excluded from the average, never counted as zero. That is deliberate, but it means the basket changes over time and the series is not one consistent definition: of 236 weeks only 11 carry all three, 133 are TD20 alone and 99 are TD20+TD27. TD33 first appears 2026-08-07, so every back-test quarter through 2026Q2 was fitted without it. Measured on the 11 weeks where all three exist, TD20 alone runs -0.21% mean and 1.99% mean absolute against the full basket, worst case +5.5% - small, but n=11 and all from one regime. Backfilling TD27 and TD33 from the archived weeklies is the real fix."}
+    "vlcc": {
+      "atlantic": [
+        "TD15",
+        "TD22"
+      ],
+      "premium": "TD3C",
+      "premium_weight": 0.12,
+      "factor": 1.0,
+      "note": "MEG weight solved from reported TCE: 10% in 2026Q2, 15% in 2026Q3. 12% adopted."
+    },
+    "smax": {
+      "atlantic": [
+        "TD20",
+        "TD27",
+        "TD33"
+      ],
+      "factor": 1.0,
+      "note": "Mean of the routes PRESENT in the week. A blank route is excluded from the average, never counted as zero. That is deliberate, but it means the basket changes over time and the series is not one consistent definition: of 236 weeks only 11 carry all three, 133 are TD20 alone and 99 are TD20+TD27. TD33 first appears 2026-08-07, so every back-test quarter through 2026Q2 was fitted without it. Measured on the 11 weeks where all three exist, TD20 alone runs -0.21% mean and 1.99% mean absolute against the full basket, worst case +5.5% - small, but n=11 and all from one regime. Backfilling TD27 and TD33 from the archived weeklies is the real fix."
+    }
   },
-
   "realised_uplift": {
-    "vlcc": 1.05,
+    "vlcc": 1.02,
     "smax": 1.03,
-    "note": "Converts the Baltic benchmark into what Frontline actually reports. Applied at SERIES CONSTRUCTION, to observed weeks only, never inside the kernel. Applied in the kernel it also marked up typed forecast anchors, so 'At base case' turned the slide's own 140 into 147 and returned $10.94/share against the slide's own $10.35. Consequence: every rate in the forecast section is a Frontline-realised rate, not a benchmark."
+    "note": "Benchmark blend -> Frontline-realised TCE. Applied at SERIES CONSTRUCTION, to observed weeks only, never inside the kernel and never to a forecast anchor the user types - that is already owner-level, and marking it up again was the 140 -> 147 bug. VLCC 1.02 is MEASURED: realised VLCC TCE / our blend over the 8 post-Euronav quarters (2024Q3-2026Q2) is mean 1.020, sd 0.044. It is 1.020 at a blend of 101,437 (2026Q1) and 1.018 at 150,097 (2026Q2), and corr(rate level, ratio) = +0.02 - capture does not fade as rates rise, over the range we can see. Was 1.05, fitted across 2022-2026, a period spanning two different fleets. SMAX 1.03 is NOT measured on the same basis: the Suezmax basket is not one consistent series (of 236 weeks only 11 carry all three routes), so the ratio cannot be computed cleanly. It is carried forward unchanged and is the weakest constant in the model."
   },
-
   "kernel": {
-    "vlcc": {"a": 14, "b": 66},
-    "smax": {"a": 20, "b": 44},
+    "vlcc": {
+      "a": 14,
+      "b": 66
+    },
+    "smax": {
+      "a": 20,
+      "b": 44
+    },
     "note": "a is the lag from a fixture being ASSESSED to it starting to earn; b is the load-to-discharge window over which that revenue is recognised. a+b is NOT the round voyage - the next cargo is fixed partway through the current one, so there is no reason they match. Assuming they did is what made the fitted a look wrong for two sessions.",
     "b_evidence": "MEASURED, 20 Oct 2026, from 17 broker-reported fixtures across 11 operators with ballast/laden/port splits (data/voyage_splits.csv). Load to discharge = laden + port. Brazil/China n=10: 61.4% of a 85.1d round voyage = 52.2d. USG/China+Japan n=7: 79.0% of 116.6d = 92.2d. MEG 24.0d from the Baltic's own TD3C method. Atlantic basket = mean(52.2, 92.2) = 72.2; blended 0.88/0.12 = 66.4d. The free fit against both targets independently wanted 66. An earlier estimate of 44.7d was wrong: it applied the Baltic's TD3C load-to-discharge ratio of 0.516 to Atlantic routes, where the real share is 61-79% because port time is far heavier and the ballast leg proportionally shorter.",
     "a_evidence": "FITTED, not measured. 14 days is the lag from Baltic assessment to commencement of loading - roughly a laycan lead. The fixture data carries open dates but not laycan, so this is the one VLCC parameter with no direct measurement. At b=66 the fit is flat between a=10 and a=18.",
     "smax_caveat": "Suezmax 20/44 is scaled, not measured - no Suezmax voyage splits yet, and its route basket is not a consistent series (see blend.smax.note). The weakest parameters in the model."
   },
-
   "coverage": {
-    "k": 0.27,
-    "note": "Back-tested across 17 quarters of disclosure: implied k ranges -0.055 to +0.591, mean 0.297, median 0.275. 0.27 is effectively the median. The Q3-26 output is insensitive to it: $135k-$148k across the entire historical k range."
+    "k": {
+      "vlcc": 0.26,
+      "smax": 0.55,
+      "lr2": 0.45
+    },
+    "note": "Share of the CONTRACTED rate that the uncovered days earn, by segment. Measured as earned_uncovered / uncovered_days / contracted_rate over 17 quarters of disclosure (data/quarter_fill.csv): VLCC median 0.26 mean 0.28, Suezmax 0.55/0.55, Aframax 0.45/0.45. Was a single 0.27 for all three, which is right for VLCC and roughly half what the data says for Suezmax. The ordering follows voyage length: Suezmax b=44 vs VLCC b=66, so a cargo fixed after the report date still lands more of its load-to-discharge window inside the quarter, and the Suezmax tail is less ballast-heavy. Back-test of coverage() with these values: VLCC mean |err| 3%, Suezmax 5%, Aframax 9%, against 8% with a single 0.27."
   },
-
   "fcf": {
     "base_fcf_musd": 2305,
     "base_fcf_per_share": 10.35,
     "fcf_at_plus_30_musd": 3096,
-    "base_rates_kusd_day": {"vlcc": 140, "smax": 115, "lr2": 55},
-    "spot_days_12m":       {"vlcc": 10474, "smax": 7317.0, "lr2": 5979.0},
+    "base_rates_kusd_day": {
+      "vlcc": 140,
+      "smax": 115,
+      "lr2": 55
+    },
+    "spot_days_12m": {
+      "vlcc": 10474,
+      "smax": 7317.0,
+      "lr2": 5979.0
+    },
     "source": "Frontline Q2 2026 'cash generation' slide, 28 August 2026"
   },
-
   "required_yields": {
     "base": 0.24,
-    "alt": 0.20,
+    "alt": 0.2,
     "note": "0.24 is not an assumption. On 28 August 2026, the day the slide was published, FRO closed at $41.40 against the slide's own $10.35 base-case FCF/share - a 25.0% cap rate. 24% sits a point inside that."
   },
-
-  "fill_curve": {
-    "phi": 0.397,
-    "note": "Share of a quarter's REMAINING days already fixed, so fixed = elapsed + phi x (1 - elapsed). Solved on all 18 disclosures: 3.76pts mean absolute. It replaces a flat idle haircut, which matched the disclosures at the one date they are published and left the curve's SHAPE untouched - the kernel still filled a quarter 71% by day 19 against the company's ~85% by day 57, and the rate blend still used those weights. Scaling a wrong curve by a constant leaves it wrong everywhere but the calibration point and leaves the forecast unchanged, which was the entire defect. This form is right at both ends: 52% on day 19, 77% on day 57, 1.0 at quarter end. The rate blend now weights printed weeks against the forward curve by THIS, not by the kernel's fill."
+  "quarters_12m": [
+    "2026Q3",
+    "2026Q4",
+    "2027Q1",
+    "2027Q2"
+  ],
+  "vlcc_spot_days_by_quarter": {
+    "2026Q4": 2136,
+    "2027Q1": 2309,
+    "2027Q2": 3058,
+    "2027Q3": 3468
   },
-
-  "quarters_12m": ["2026Q4", "2027Q1", "2027Q2", "2027Q3"],
-  "vlcc_spot_days_by_quarter": {"2026Q4": 2136, "2027Q1": 2309, "2027Q2": 3058, "2027Q3": 3468},
-
   "nav": {
     "status": "placeholder",
     "note": "Needs fleet.csv (vessel, segment, build year) and a broker value curve. Xclusiv VLCC assessments 18 Sep 2026: 5yr $172m, 10yr $152m, 15yr $135m; newbuild ~$131-135m. Early July for comparison: $145m / $115m / $83.5m. The age curve has collapsed - buyers paying for immediate availability. Frontline's Euronav tonnage skews old, so NAV is levered to the end of the curve that moved most."
+  },
+  "quarters_note": "The window opens on the nearest UNREPORTED quarter and rolls forward one when Frontline reports. That first quarter always has a disclosed coverage % and contracted rate, so it is priced with coverage() and is frozen - the forward-curve controls cannot move it. Later quarters have no disclosure and use the kernel.",
+  "consensus": {
+    "source": "3 analysts, normalized EPS, retrieved 2026-11-04",
+    "eps": {
+      "2026Q3": 2.27,
+      "2026Q4": 1.58,
+      "FY2026": 10.24,
+      "FY2027": 6.24
+    },
+    "note": "Reference only, never an input. The Q4 estimate has not moved since before the spike began: 1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days, while the Q3 estimate rose 1.38 -> 2.27 over the same window. Consensus Q4 of 1.58 implies a VLCC spot TCE of about 92,000/day, below Q3 and a fifth of what is already locked in printed weeks."
+  },
+  "tce_to_profit": {
+    "gap_musd": 173.1,
+    "shares_m": 222.62,
+    "note": "Total TCE less adjusted profit, calibrated on 2026Q2: TCE 753.3, adjusted profit 580.2. Largely fixed costs, so it is held flat across quarters - a simplification that will understate the gap if the fleet grows. Used only to translate the forecast into EPS for comparison with consensus."
   }
 }
