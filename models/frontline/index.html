@@ -148,6 +148,13 @@ for (const r of quarterly) {
 // The tile tracks the first quarter still RUNNING — a finished quarter is
 // 100% fed and tells you nothing.
 const liveQ = cfg.quarters_12m.find(q => quarterBounds(q)[1] > today) ?? cfg.quarters_12m.at(-1);
+const discQ = cfg.quarters_12m[0];
+const qShort = q => "Q" + q.slice(-1);
+const qYear  = q => q.slice(0, 4);
+// "Q3 and Q4 2026" when they share a year, "Q4 2026 and Q1 2027" when they don't
+const estHead = qYear(discQ) === qYear(liveQ)
+  ? `${qShort(discQ)} and ${qShort(liveQ)} ${qYear(liveQ)}`
+  : `${qShort(discQ)} ${qYear(discQ)} and ${qShort(liveQ)} ${qYear(liveQ)}`;
 const qV = kernelQuarter(VU, liveQ, kv), qS = kernelQuarter(SU, liveQ, ks);
 const [qsMs, qeMs] = quarterBounds(liveQ);
 const qLen = Math.round((qeMs - qsMs) / DAY);
@@ -218,11 +225,11 @@ const ROUTES = [
 
 document.getElementById("tiles").innerHTML = `
 <div class="card">
-  <h2>Blended spot</h2>
+  <h2>Blended spot — change WoW</h2>
   <div class="hero">${fmt.k(vV)}<span class="delta ${wowV>=0?"up":"down"}" style="font-size:14px;margin-left:8px">${fmt.signed(wowV)}</span></div>
-  <div class="sub2">VLCC · ${cfg.blend.vlcc.premium_weight*100}% MEG weight · change WoW</div>
+  <div class="sub2">VLCC · ${cfg.blend.vlcc.premium_weight*100}% MEG weight</div>
   <div class="hero sm" style="margin-top:10px">${fmt.k(vS)}<span class="delta ${wowS>=0?"up":"down"}" style="font-size:14px;margin-left:8px">${fmt.signed(wowS)}</span></div>
-  <div class="sub2">Suezmax · change WoW</div>
+  <div class="sub2">Suezmax</div>
 </div>
 
 <div class="card mid">
@@ -242,20 +249,18 @@ document.getElementById("tiles").innerHTML = `
 </div>
 
 <div class="card">
-  <h2>${cfg.quarters_12m[0]} and ${liveQ} estimates</h2>
+  <h2>Estimates — ${estHead}</h2>
   <div class="hero">${fmt.pct(fedNow,0)}</div>
-  <div class="sub2">share of ${liveQ} earnings already booked</div>
+  <div class="sub2">share of ${qShort(liveQ)} earnings already booked</div>
   <!-- The disclosed quarter comes from coverage() off Frontline's own figures
        and does not move. The live quarter is printed weeks at their published
        rate plus the forward curve, weighted by the kernel — it moves with the
        preset, and matches the forecast table's row. -->
-  <div class="rowline" style="margin-top:8px"><span class="muted">Expected ${cfg.quarters_12m[0]} VLCC TCE</span><span id="ed-v">—</span></div>
-  <div class="rowline"><span class="muted">Expected ${cfg.quarters_12m[0]} Suezmax TCE</span><span id="ed-s">—</span></div>
-  <div class="rowline" style="margin-top:6px"><span class="muted">Expected ${liveQ} VLCC TCE</span><span id="eq-v">—</span></div>
-  <div class="rowline"><span class="muted">Expected ${liveQ} Suezmax TCE</span><span id="eq-s">—</span></div>
-  <div class="note" style="margin-top:8px">Per available spot day, ballast to discharge.
-    Day ${qDay} of ${qLen}. The booked share counts earnings whose Baltic week has printed —
-    not Frontline's "% covered", which counts days on a contracted voyage and reads lower.</div>
+  <div class="rowline" style="margin-top:8px"><span class="muted">${qShort(discQ)} VLCC spot TCE</span><span id="ed-v">—</span></div>
+  <div class="rowline"><span class="muted">${qShort(discQ)} Suezmax spot TCE</span><span id="ed-s">—</span></div>
+  <div class="rowline" style="margin-top:6px"><span class="muted">${qShort(liveQ)} VLCC spot TCE</span><span id="eq-v">—</span></div>
+  <div class="rowline"><span class="muted">${qShort(liveQ)} Suezmax spot TCE</span><span id="eq-s">—</span></div>
+  <div class="note" style="margin-top:8px">Per available spot day, ballast to discharge.</div>
 </div>
 
 <div class="card">
@@ -438,7 +443,7 @@ function render() {
       <tr><td class="muted">ratio</td>${qs.map(q => C[q] ? `<td class="${epsBy[q]/C[q]>1.5?"down":""}">${(epsBy[q]/C[q]).toFixed(1)}&times;</td>` : "<td>—</td>").join("")}<td></td></tr>`;
   }
   document.getElementById("fc").innerHTML = rows;
-  for (const [q, pfx] of [[cfg.quarters_12m[0], "ed"], [liveQ, "eq"]]) {
+  for (const [q, pfx] of [[discQ, "ed"], [liveQ, "eq"]]) {
     const r = liveRates[q]; if (!r) continue;
     document.getElementById(pfx + "-v").textContent = fmt.usd(r.v);
     document.getElementById(pfx + "-s").textContent = fmt.usd(r.s);
