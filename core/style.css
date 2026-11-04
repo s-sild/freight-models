@@ -85,6 +85,10 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
 .rowline + .rowline { border-top: 1px solid var(--line); }
 .rowline span:last-child { font-variant-numeric: tabular-nums; }
 .muted { color: var(--text-muted); }
+/* Derived rows — ratios and averages computed from the rows above them, not
+   assessments in their own right. Italic so the eye separates them from the
+   published numbers without a second colour. */
+tr.derived td { font-style: italic; }
 .note { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.45; }
 
 .legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }

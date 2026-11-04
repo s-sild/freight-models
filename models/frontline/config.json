@@ -26,7 +26,7 @@
       "premium": "TD3C",
       "premium_weight": 0.12,
       "factor": 1.0,
-      "note": "MEG weight solved from reported TCE: 10% in 2026Q2, 15% in 2026Q3. 12% adopted."
+      "note": "MEG weight solved from reported TCE: 10% in 2026Q2, 15% in 2026Q3. 12% adopted. !! REGIME-DEPENDENT, NOT A CONSTANT. 12% is a Hormuz-disrupted weight. A large part of the VLCC fleet is committed to Arabian Gulf trades - idle inside the Gulf, shuttling across the strait, or loading at Fujairah and along the Omani coast (Frontline Q2 2026 tanker market update) - which pushes Frontline's exposure toward the Atlantic and so toward TD15/TD22. If Hormuz normalises the MEG share rises and this weight has to be re-solved from the next reported TCE. Do not treat it as settled."
     },
     "smax": {
       "atlantic": [
@@ -36,7 +36,8 @@
       ],
       "factor": 1.0,
       "note": "Mean of the routes PRESENT in the week. A blank route is excluded from the average, never counted as zero. That is deliberate, but it means the basket changes over time and the series is not one consistent definition: of 236 weeks only 11 carry all three, 133 are TD20 alone and 99 are TD20+TD27. TD33 first appears 2026-08-07, so every back-test quarter through 2026Q2 was fitted without it. Measured on the 11 weeks where all three exist, TD20 alone runs -0.21% mean and 1.99% mean absolute against the full basket, worst case +5.5% - small, but n=11 and all from one regime. Backfilling TD27 and TD33 from the archived weeklies is the real fix."
-    }
+    },
+    "note_ballast_regime": "!! The same disruption raises BALLAST. Atlantic voyages carry a far higher ballast share than MEG: measured on the broker fixtures in data/voyage_splits.csv, Brazil/China is 38.2% ballast and USG/Far East 20.9%, against an assumed 46.7% for a much shorter MEG round voyage - but the Atlantic legs are 85-117 days against 45, so in absolute days the ballast is roughly 32 and 24 days against 21. While the fleet is skewed Atlantic, expect Frontline's disclosed ballast days to run above the 23.6% 16-quarter mean for 2026Q3 and Q4. That does not break the model - the Baltic TCEs are round-voyage and the 1.02 uplift is measured against realised TCE, so ballast is inside both sides - but it does mean the k values and the uplift were calibrated in a different ballast regime."
   },
   "realised_uplift": {
     "vlcc": 1.02,

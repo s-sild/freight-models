@@ -218,11 +218,11 @@ const ROUTES = [
 
 document.getElementById("tiles").innerHTML = `
 <div class="card">
-  <h2>Spot, company-equivalent</h2>
+  <h2>Blended spot</h2>
   <div class="hero">${fmt.k(vV)}<span class="delta ${wowV>=0?"up":"down"}" style="font-size:14px;margin-left:8px">${fmt.signed(wowV)}</span></div>
-  <div class="sub2">VLCC · ${cfg.blend.vlcc.premium_weight*100}% MEG weight · change is week on week</div>
+  <div class="sub2">VLCC · ${cfg.blend.vlcc.premium_weight*100}% MEG weight · change WoW</div>
   <div class="hero sm" style="margin-top:10px">${fmt.k(vS)}<span class="delta ${wowS>=0?"up":"down"}" style="font-size:14px;margin-left:8px">${fmt.signed(wowS)}</span></div>
-  <div class="sub2">Suezmax</div>
+  <div class="sub2">Suezmax · change WoW</div>
 </div>
 
 <div class="card mid">
@@ -242,17 +242,20 @@ document.getElementById("tiles").innerHTML = `
 </div>
 
 <div class="card">
-  <h2>${liveQ} — fed</h2>
+  <h2>${cfg.quarters_12m[0]} and ${liveQ} estimates</h2>
   <div class="hero">${fmt.pct(fedNow,0)}</div>
-  <div class="sub2">share of the quarter's earnings whose Baltic week has already printed</div>
-  <!-- Expected full-quarter TCE: printed weeks at their published rate, the
-       rest at the forward curve, weighted by the kernel. Same figure as the
-       forecast table's row for this quarter — it moves with the preset. -->
-  <div class="rowline" style="margin-top:8px"><span class="muted">Expected ${liveQ} spot-day TCE, VLCC</span><span id="eq-v">—</span></div>
-  <div class="rowline"><span class="muted">Expected ${liveQ} spot-day TCE, Suezmax</span><span id="eq-s">—</span></div>
-  <div class="note" style="margin-top:8px">Per available spot day, round-trip basis — ballast already in it.
-    Day ${qDay} of ${qLen}. Not the same as Frontline's "% covered", which counts days on a
-    contracted voyage and reads lower.</div>
+  <div class="sub2">share of ${liveQ} earnings already booked</div>
+  <!-- The disclosed quarter comes from coverage() off Frontline's own figures
+       and does not move. The live quarter is printed weeks at their published
+       rate plus the forward curve, weighted by the kernel — it moves with the
+       preset, and matches the forecast table's row. -->
+  <div class="rowline" style="margin-top:8px"><span class="muted">Expected ${cfg.quarters_12m[0]} VLCC TCE</span><span id="ed-v">—</span></div>
+  <div class="rowline"><span class="muted">Expected ${cfg.quarters_12m[0]} Suezmax TCE</span><span id="ed-s">—</span></div>
+  <div class="rowline" style="margin-top:6px"><span class="muted">Expected ${liveQ} VLCC TCE</span><span id="eq-v">—</span></div>
+  <div class="rowline"><span class="muted">Expected ${liveQ} Suezmax TCE</span><span id="eq-s">—</span></div>
+  <div class="note" style="margin-top:8px">Per available spot day, ballast to discharge.
+    Day ${qDay} of ${qLen}. The booked share counts earnings whose Baltic week has printed —
+    not Frontline's "% covered", which counts days on a contracted voyage and reads lower.</div>
 </div>
 
 <div class="card">
@@ -274,7 +277,7 @@ document.getElementById("fwd").innerHTML =
   tcRow("vlcc_1yr_tc", "VLCC") +
   tcRow("smax_1yr_tc", "Suezmax") +
   tcRow("afra_1yr_tc", "Aframax") +
-  `<tr><td class="t muted">Suezmax ÷ VLCC</td>${cols.map(([,,t]) => {
+  `<tr class="derived"><td class="t muted">Suezmax ÷ VLCC</td>${cols.map(([,,t]) => {
       const a = t ? num(t.smax_1yr_tc) : null, b = t ? num(t.vlcc_1yr_tc) : null;
       return `<td>${a && b ? (a/b).toFixed(3) : "—"}</td>`;
     }).join("")}</tr>`;
@@ -289,9 +292,9 @@ document.getElementById("routes").innerHTML =
     // the two derived VLCC lines sit directly below the lanes they come from
     if (code !== "TD22") return row;
     return row +
-      `<tr><td class="t">Atl average</td>${
+      `<tr class="derived"><td class="t">Atl average</td>${
         cols.map(([, r]) => `<td>${r && atl(r) ? "$"+fmt.k(atl(r)) : "—"}</td>`).join("")}</tr>` +
-      `<tr><td class="t">TD3C ÷ Atl avg</td>${cols.map(([, r]) => {
+      `<tr class="derived"><td class="t">TD3C ÷ Atl avg</td>${cols.map(([, r]) => {
           const a = r ? atl(r) : null, t = r ? num(r.TD3C) : null;
           return `<td>${a && t ? (t/a).toFixed(2) + "×" : "—"}</td>`;
         }).join("")}</tr>`;
@@ -435,10 +438,10 @@ function render() {
       <tr><td class="muted">ratio</td>${qs.map(q => C[q] ? `<td class="${epsBy[q]/C[q]>1.5?"down":""}">${(epsBy[q]/C[q]).toFixed(1)}&times;</td>` : "<td>—</td>").join("")}<td></td></tr>`;
   }
   document.getElementById("fc").innerHTML = rows;
-  const liveRow = liveRates[liveQ];
-  if (liveRow) {
-    document.getElementById("eq-v").textContent = fmt.usd(liveRow.v);
-    document.getElementById("eq-s").textContent = fmt.usd(liveRow.s);
+  for (const [q, pfx] of [[cfg.quarters_12m[0], "ed"], [liveQ, "eq"]]) {
+    const r = liveRates[q]; if (!r) continue;
+    document.getElementById(pfx + "-v").textContent = fmt.usd(r.v);
+    document.getElementById(pfx + "-s").textContent = fmt.usd(r.s);
   }
 }
 
