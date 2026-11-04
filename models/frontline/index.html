@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Frontline — freight to earnings</title>
+<script>
+/* Runs before the stylesheet so the page never paints the wrong theme first.
+   Light is the default: this is read in daylight far more than at night, and
+   the hero photo is tuned for it. localStorage can throw in a private window
+   or with site data blocked, so every access is guarded and the page still
+   works with none of it. */
+(function () {
+  var t = "light";
+  try { t = localStorage.getItem("fro-theme") || "light"; } catch (e) {}
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -20,8 +32,17 @@ body:has(.hero-img)::before {
   background-image: linear-gradient(rgb(0 0 0 / 0.45), rgb(0 0 0 / 0.72)), url("hero.jpg");
   background-size: cover; background-position: center;
 }
+/* In light mode the photo sits under a pale wash instead of a dark scrim, so
+   white cards read as panels on a bright page rather than cut-outs on a dark
+   one. Heavier toward the bottom either way, where the panels stack up. */
+:root[data-theme="light"] body:has(.hero-img)::before {
+  background-image: linear-gradient(rgb(236 238 240 / 0.74), rgb(236 238 240 / 0.93)), url("hero.jpg");
+}
 body:has(.hero-img) > .wrap { position: relative; z-index: 1; }
 body:has(.hero-img) header.page h1 { color: #fff; }
+:root[data-theme="light"] body:has(.hero-img) header.page h1 { color: var(--text-primary); }
+:root[data-theme="light"] body:has(.hero-img) header.page .sub,
+:root[data-theme="light"] body:has(.hero-img) > .wrap > .asof { color: var(--text-secondary); }
 body:has(.hero-img) header.page .sub,
 body:has(.hero-img) > .wrap > .asof,
 body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
@@ -33,6 +54,9 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
   <header class="page">
     <h1>Frontline plc</h1>
     <span class="sub">freight rates → recognised earnings → implied price</span>
+    <span class="theme-sw" id="theme" style="margin-left:auto">
+      <button data-t="light">Light</button><button data-t="dark">Dark</button><button data-t="auto">Auto</button>
+    </span>
   </header>
   <p class="asof" id="asof">loading…</p>
 
@@ -41,8 +65,8 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
   <div class="card full" style="margin-top:12px">
     <h2>Benchmark spot, company-equivalent</h2>
     <div class="legend">
-      <span><span class="sw" style="background:var(--series-1)"></span>VLCC</span>
-      <span><span class="sw" style="background:var(--series-2)"></span>Suezmax</span>
+      <span><span class="sw" data-series="1" style="background:var(--series-1)"></span>VLCC</span>
+      <span><span class="sw" data-series="2" style="background:var(--series-2)"></span>Suezmax</span>
       <span class="muted" style="margin-left:auto">log scale · $/day</span>
     </div>
     <div id="chart-spot"></div>
@@ -58,7 +82,7 @@ body:has(.hero-img) > .wrap > .note { color: rgb(255 255 255 / 0.82); }
   <div class="card full" style="margin-top:12px">
     <h2>What the market pays for Frontline's own base case</h2>
     <div class="legend">
-      <span><span class="sw" style="background:var(--series-1)"></span>implied FCF yield on $10.35/share</span>
+      <span><span class="sw" data-series="1" style="background:var(--series-1)"></span>implied FCF yield on $10.35/share</span>
     </div>
     <div id="chart-yield"></div>
     <p class="note" id="note-yield"></p>
@@ -295,7 +319,7 @@ document.getElementById("routes").innerHTML =
   ROUTES.map(([code, lane]) => {
     const row = `<tr>
       <td class="t">${code} <span class="muted">${lane}</span></td>
-      ${cols.map(([, r]) => `<td>${r ? "$"+fmt.k(num(r[code])) : "—"}</td>`).join("")}
+      ${cols.map(([, r]) => `<td>${r && num(r[code]) !== null ? "$"+fmt.k(num(r[code])) : "—"}</td>`).join("")}
     </tr>`;
     // the two derived VLCC lines sit directly below the lanes they come from
     if (code !== "TD22") return row;
@@ -316,21 +340,32 @@ const WINDOW_MONTHS = 24;
 const cutoff = tV - WINDOW_MONTHS * 30.44 * DAY;
 const win = s => s.filter(p => p[0] >= cutoff);
 
-lineChart(document.getElementById("chart-spot"), {
-  height: 240, log: true,
-  fmtY: v => v >= 1e6 ? "$" + (v/1e6).toFixed(1) + "m" : "$" + (v/1000).toFixed(0) + "k",
-  ariaLabel: "Company-equivalent VLCC and Suezmax spot rates, 2022 to present, log scale",
-  series: [{ name: "VLCC", color: S1, points: win(V) }, { name: "Suezmax", color: S2, points: win(S) }],
-});
+const ySeries = px.filter(r => num(r.close)).map(r => [ts(r.date), m.baseFps / num(r.close)]);
+
+// Series colours come from CSS custom properties, so they have to be re-read
+// on every draw — a theme change restyles the page but not an SVG already
+// painted with literal hex values.
+function drawCharts() {
+  const cs = getComputedStyle(document.documentElement);
+  const c1 = cs.getPropertyValue("--series-1").trim();
+  const c2 = cs.getPropertyValue("--series-2").trim();
+  lineChart(document.getElementById("chart-spot"), {
+    height: 240, log: true,
+    fmtY: v => v >= 1e6 ? "$" + (v/1e6).toFixed(1) + "m" : "$" + (v/1000).toFixed(0) + "k",
+    ariaLabel: "Company-equivalent VLCC and Suezmax spot rates, 2022 to present, log scale",
+    series: [{ name: "VLCC", color: c1, points: win(V) }, { name: "Suezmax", color: c2, points: win(S) }],
+  });
+  lineChart(document.getElementById("chart-yield"), {
+    height: 180, fmtY: v => (v*100).toFixed(0) + "%",
+    ariaLabel: "Implied free cash flow yield on Frontline's published base case",
+    series: [{ name: "implied yield", color: c1, points: ySeries }],
+  });
+  for (const sw of document.querySelectorAll(".legend .sw")) {
+    if (sw.dataset.series) sw.style.background = sw.dataset.series === "2" ? c2 : c1;
+  }
+}
 document.getElementById("note-spot").textContent =
   `Last ${WINDOW_MONTHS} months. All ${V.filter(p=>p[1]!==null).length} weeks since 2022 drive the back-test.`;
-
-const ySeries = px.filter(r => num(r.close)).map(r => [ts(r.date), m.baseFps / num(r.close)]);
-lineChart(document.getElementById("chart-yield"), {
-  height: 180, fmtY: v => (v*100).toFixed(0) + "%",
-  ariaLabel: "Implied free cash flow yield on Frontline's published base case",
-  series: [{ name: "implied yield", color: S1, points: ySeries }],
-});
 document.getElementById("note-yield").textContent =
   `25.0% on 28 August, ${fmt.pct(m.impliedYieldOnBase(close))} now. Either a re-rating or a higher rate expectation — the model cannot separate them.`;
 
@@ -496,6 +531,25 @@ document.getElementById("navcurve").innerHTML =
     return `<tr><td>${ageLabel(a)}</td>${vals.map(v=>`<td>${v===null?"—":"$"+v+"m"}</td>`).join("")}
       <td class="${ch>=0?"up":"down"}">${ch===null?"—":fmt.signed(ch,0)}</td></tr>`;
   }).join("");
+
+// ---- theme switch --------------------------------------------------------
+// The charts read their colours from CSS custom properties at draw time, so a
+// theme change has to redraw them rather than just restyle.
+const themeBox = document.getElementById("theme");
+function paintTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem("fro-theme", t); } catch (e) {}
+  for (const btn of themeBox.querySelectorAll("button"))
+    btn.setAttribute("aria-pressed", String(btn.dataset.t === t));
+  drawCharts();
+}
+themeBox.addEventListener("click", e => {
+  const b = e.target.closest("button[data-t]");
+  if (b) paintTheme(b.dataset.t);
+});
+let curTheme = "light";
+try { curTheme = localStorage.getItem("fro-theme") || "light"; } catch (e) {}
+paintTheme(curTheme);
 </script>
 </body>
 </html>

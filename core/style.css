@@ -1,18 +1,25 @@
 :root {
   color-scheme: light;
-  --surface-0: #f6f6f4;
-  --surface-1: #fcfcfb;
-  --line: #e3e2dd;
-  --text-primary: #0b0b0b;
-  --text-secondary: #52514e;
-  --text-muted: #85837c;
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --good: #0f7a4d;
-  --warn: #b25c00;
+  /* Page a shade cooler and darker than the card, so a white panel reads as a
+     panel rather than as the page. The old pair (#f6f6f4 / #fcfcfb) was six
+     points apart and the cards floated. */
+  --surface-0: #eceef0;
+  --surface-1: #ffffff;
+  --line: #d8dce0;
+  --text-primary: #10131a;
+  --text-secondary: #4a515c;
+  --text-muted: #7b828e;
+  --series-1: #1f6fd0;
+  --series-2: #e35a28;
+  --good: #0d7a46;
+  --warn: #a85c00;
+  --card-shadow: 0 1px 2px rgb(16 19 26 / 0.05), 0 1px 10px rgb(16 19 26 / 0.04);
 }
+/* Dark is opt-in only: the page defaults to light and the toggle writes
+   data-theme. The OS preference no longer decides, because the hero photo and
+   the scrim are tuned per theme and a silent switch made them disagree. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root[data-theme="auto"] {
     color-scheme: dark;
     --surface-0: #121211;
     --surface-1: #1a1a19;
@@ -26,12 +33,24 @@
     --warn: #e0954a;
   }
 }
+:root[data-theme="dark"], :root[data-theme="auto"] {
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
 :root[data-theme="dark"] {
   color-scheme: dark;
   --surface-0: #121211; --surface-1: #1a1a19; --line: #322f2c;
   --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8d84;
   --series-1: #3987e5; --series-2: #d95926; --good: #4fbd84; --warn: #e0954a;
 }
+
+/* Theme toggle — three states, sitting in the header. */
+.theme-sw { display: inline-flex; gap: 2px; padding: 2px; border-radius: 7px;
+  border: 1px solid var(--line); background: var(--surface-1); }
+.theme-sw button { font: inherit; font-size: 11.5px; line-height: 1; cursor: pointer;
+  padding: 5px 9px; border: 0; border-radius: 5px; background: transparent;
+  color: var(--text-muted); }
+.theme-sw button[aria-pressed="true"] { background: var(--surface-0);
+  color: var(--text-primary); font-weight: 600; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--surface-0); color: var(--text-primary); }
@@ -66,6 +85,7 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
 .card {
   background: var(--surface-1); border: 1px solid var(--line);
   border-radius: 10px; padding: 14px 16px;
+  box-shadow: var(--card-shadow);
 }
 .card.full { grid-column: 1 / -1; }
 .tiles3 { display: grid; gap: 12px; grid-template-columns: 0.75fr 1.5fr 0.75fr; align-items: stretch; }
