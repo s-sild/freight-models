@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Frontline — freight to earnings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="../../core/style.css">
 <style>
 /* Drop a hero.jpg beside this file and it appears behind the whole page.
@@ -478,14 +481,20 @@ document.querySelector('button.preset[data-preset="tc"]').click();
 const byDate = {};
 for (const r of vvals) (byDate[r.as_of] ||= []).push(r);
 const dates = Object.keys(byDate).sort();
-const ages = [...new Set(vvals.map(r => +r.age_years))].sort((a,b)=>a-b);
+// age_years is a number for resale hulls and the literal "NB" for a newbuilding
+// contract — keep the key as the raw string so "NB" does not become NaN, and
+// sort it to the end, since a contract for delivery in three years is not an
+// age. The NB-to-0YO gap is the premium for steel that exists now.
+const ages = [...new Set(vvals.map(r => r.age_years.trim()))]
+  .sort((a, b) => (num(a) ?? 1e9) - (num(b) ?? 1e9));
+const ageLabel = a => num(a) === null ? "Newbuilding" : `${a} years`;
 document.getElementById("navcurve").innerHTML =
   `<tr><th>VLCC age</th>${dates.map(d=>`<th>${d}</th>`).join("")}<th>change</th></tr>` +
   ages.map(a => {
-    const vals = dates.map(d => num((byDate[d].find(r => +r.age_years === a)||{}).value_musd));
+    const vals = dates.map(d => num((byDate[d].find(r => r.age_years.trim() === a)||{}).value_musd));
     const ch = vals[0] && vals.at(-1) ? vals.at(-1)/vals[0]-1 : null;
-    return `<tr><td>${a} years</td>${vals.map(v=>`<td>${v===null?"—":"$"+v+"m"}</td>`).join("")}
-      <td class="${ch>=0?"up":"down"}">${fmt.signed(ch,0)}</td></tr>`;
+    return `<tr><td>${ageLabel(a)}</td>${vals.map(v=>`<td>${v===null?"—":"$"+v+"m"}</td>`).join("")}
+      <td class="${ch>=0?"up":"down"}">${ch===null?"—":fmt.signed(ch,0)}</td></tr>`;
   }).join("");
 </script>
 </body>

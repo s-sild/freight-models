@@ -36,7 +36,13 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--surface-0); color: var(--text-primary); }
 body {
-  font: 15px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* Inter: drawn for dense numeric UI, and its tabular figures line up in the
+     rate columns where the system stack's do not. The page links it in its own
+     <head> with preconnect — an @import here would serialise the request behind
+     this stylesheet. Falls back to the system stack, so a blocked font or an
+     offline read still looks deliberate rather than broken. */
+  font: 15px/1.5 "Inter", ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-feature-settings: "cv05" 1;   /* single-storey l, so 1 / l / I stay apart */
   padding: 24px 16px 64px;
 }
 /* Reads 10% small at arm's length. zoom scales type, padding and widths
@@ -84,6 +90,9 @@ header.page .sub { color: var(--text-muted); font-size: 13px; }
 .rowline { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 14px; }
 .rowline + .rowline { border-top: 1px solid var(--line); }
 .rowline span:last-child { font-variant-numeric: tabular-nums; }
+/* Inter is drawn loose for body copy; the display numbers read better pulled in. */
+.hero { letter-spacing: -0.018em; }
+h2 { letter-spacing: -0.009em; }
 .muted { color: var(--text-muted); }
 /* Derived rows — ratios and averages computed from the rows above them, not
    assessments in their own right. Italic so the eye separates them from the
