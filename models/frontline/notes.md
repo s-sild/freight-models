@@ -3,6 +3,11 @@
 Why the model is what it is. So neither of us relitigates a settled question,
 and the unsettled ones stay visible.
 
+**For what the model currently does, read `METHOD.md`** — the chain end to
+end, every constant marked disclosed / measured / fitted / assumed, and the
+variables that could break it. This file is the history and the reasoning;
+where the two disagree, METHOD.md is the code and this is the archaeology.
+
 ## Settled
 
 - **MEG weight 12%.** Solved from reported TCE, not assumed: 10% implied by
@@ -42,185 +47,56 @@ and the unsettled ones stay visible.
   must read back unchanged, and an observed week must still be uplifted.
 
 - **Tax is negligible.** $554k on $659.7m pre-tax in 2026Q2 — 0.08%.
-
 ## Open / weak
 
-- **The Suezmax kernel is the weakest parameter.** Free fit was 12/98 at CV
-  3.6%, but a 98-day window lags badly in a fast market, so 25/30 is used at CV
-  6.1%. Switching between them swung Q4 by 26%.
-- **The back-test is in-sample and single-regime.** Parameters were fitted on
-  the same four quarters, and VLCC rose monotonically across all of them
-  (34k → 74k → 104k → 153k). Untested against a falling market. Errors aren't
-  random-looking either: the two largest are both positive and at the ends.
-- **Far outside the calibration range.** Fitted where VLCC ran $34k–$153k. At
-  $1.4m/day prints there is no basis for claiming ±6–8% still holds.
-- **Three methods disagree on 2026Q3, unresolved.** Coverage $141,000 · kernel
-  $158,186 · DHT-implied $162,452. Not a parameter problem — coverage gives
-  $135k–$148k across the entire historical k range.
+**The live list of parameters and their status is `METHOD.md`.** This section
+holds the reasoning, not the register — don't maintain both.
 
-  Suspected mechanism, and it is about ballast. The two models treat a
-  quarter's unfixed tail differently. The kernel handles ballast as **timing
-  only**: a week's rate lands on days D+a onward, so ballast days earn nothing,
-  but every day that does earn gets the full index. The coverage model handles
-  it as a **drag**: uncovered days earn k = 0.27 of the contracted rate,
-  calibrated across 17 quarters. On the ~14% of Q3 still unbooked at the report
-  date, the kernel says "index, lagged" and coverage says "a quarter of it".
-  The kernel being the higher of the two is exactly what that predicts.
+### Still open
 
-  Hypothesis, not finding. The earlier candidate — that no quarter in the
-  sample saw an intra-quarter rise like Q3-26, so uncovered days may earn a
-  higher fraction than history shows — is still live, and the two are not
-  separable with one observation. **30 November settles it**: if realised lands
-  near $141k the kernel needs a drag term on its unlocked portion.
-- **The locked share is not Frontline's coverage, and it is not a confidence
-  measure.** Two separate findings from 16 Oct 2026, both against all 18
-  disclosures (`report_date` now carries the publication date of each).
+- **The uplift is applied three times outside its calibration range.** 1.02 is
+  measured on blends from 30k to 150k. Q4 2026 is being priced off a blend of
+  475k. `corr(rate level, ratio) = +0.02` says capture does not fade across the
+  range we can see, but that says nothing about outside it. **Everything rests
+  here.** Frontline's disclosed Q4 covered rate, out with the Q3 report in late
+  November, is the direct test.
+- **`a` = 14 is the last pure curve fit.** The measured ballast leg is 27.5
+  days (17 fixtures, `data/voyage_cycle.md`), and substituting it worsens the
+  back-test from 10.9% to 13.7% mean absolute error. So 14 stays, unexplained.
+  It is not the ballast leg — it is a statistical lag between a Baltic weekly
+  assessment and the earnings it predicts, and the market's autocorrelation is
+  the likely reason the fitted value is shorter than the physical one.
+- **Suezmax is weak in three places at once.** The basket is not one
+  consistent series (11 of 236 weeks carry all three routes), so its 1.03
+  uplift cannot be measured the way VLCC's 1.02 was; its kernel 20/44 is scaled
+  from VLCC with no voyage splits to measure against; and TD27/TD33 backfill
+  from the archived weeklies is still the real fix for the first of those.
+- **We disagree with consensus by 4.8x on Q4 2026.** $7.52 against $1.58. See
+  `METHOD.md` for why that reads as a stale estimate rather than a considered
+  one — chiefly that consensus Q4 implies a VLCC spot TCE below what is already
+  locked in printed weeks, and has not moved since before the spike. It is the
+  only independent check available and it disagrees, so it is recorded, not
+  explained away.
 
-  First, the kernel's locked share and Frontline's disclosed "% covered" are
-  different quantities. At the 18 report dates the kernel sits a mean **+14.4
-  points** above the disclosure, sd 9.3, range −7.6 to +25.0. The gap does not
-  correct away: lengthening the kernel window from 67 days to 120 leaves the
-  mean gap at +5.5 to +5.6 throughout, because every report lands 51–60 days
-  into the covered quarter (mean 56.7) by which point nearly every feeding week
-  is published whatever window is assumed. The kernel asks whether the index
-  for a day has printed. Frontline asks whether a fixture exists against that
-  day — a commercial choice that ran 68–92% across the sample, correlating
-  +0.45 with the contracted rate. The kernel cannot see it.
+### Closed since
 
-  Second, and worse for the dashboard: **forecast error does not fall as the
-  locked share rises.** Kernel estimate vs realised VLCC spot TCE, 2023Q1
-  onward (2022 excluded — the blend prints negative there):
-
-  | locked | n | mean error | mean abs error |
-  |---|---|---|---|
-  | ~50% | 14 | −3.6% | 10.5% |
-  | ~65% | 14 | −4.8% | 8.5% |
-  | ~74% | 14 | −5.1% | 8.8% |
-  | ~90% | 10 | −5.5% | 10.4% |
-  | 100% | 5 | −6.9% | 11.6% |
-
-  Flat. The residual is not in the unpublished weeks; it is in the mapping from
-  index blend to Frontline's realised number — fleet age and mix, which voyages
-  are actually taken, waiting time. Excluding 2023Q4, which dominates both
-  tails (−43% to −27%), the 74% band gives ~6.3% mean absolute error.
-
-  Consequence: a rising locked share does not mean a tightening forecast, and
-  waiting for weeks to accumulate does not buy accuracy. The 30 November report
-  matters because it supplies Q3 actual and Q4 contracted rate plus coverage —
-  hard disclosure — not because more Baltic weeks will have printed.
-  Caveats: n=14, bands are coarse enough that a quarter can skip one, and the
-  kernel parameters were fitted on 2025Q4–2026Q2, so this is not out-of-sample.
-
-- **The kernel filled a quarter too fast. Fixed properly 20 Oct 2026, on the
-  second attempt.** It read 73.9% of Q4 determined on day 19; Frontline
-  reports ~85% fixed only by day 57. An over-fast fill is anti-conservative in
-  a falling market, which is the opposite of this model's job.
-
-  **The first attempt was a scalar haircut and it was not a fix.**
-  `contracted = kernel fill x (1 - idle)` made the DISPLAYED number match the
-  disclosures at the one date they are published. It changed nothing about the
-  shape of the curve — the kernel still filled 71% by day 19 and ~99% by day
-  57 — and the rate blend still used the kernel's weights. So the forecast,
-  the only output that matters, was identical before and after. Scaling a
-  wrong curve by a constant leaves it wrong everywhere except the calibration
-  point. A flat haircut also never decayed, so a *completed* quarter read 81%
-  contracted when every day of it had happened.
-
-  **The fix is a curve with the right shape, driving the rate.**
-
-      fixed = elapsed + phi x (1 - elapsed),  phi = 0.397
-
-  Elapsed days are fixed by definition; phi of the remainder is already on
-  subs. Solved on all 18 disclosures at 3.76pts mean absolute. Right at both
-  ends — 52% on day 19, 77% on day 57, 1.0 at quarter end.
-
-  And the part that was missing the first time: **the rate blend now weights by
-  this curve, not by the kernel's fill.**
-
-      rate = fixed x (printed-week rate) + (1 - fixed) x (curve rate)
-
-  The kernel still decides which weeks reach a quarter and with what weight.
-  It no longer decides how settled the quarter is. A completed quarter has
-  fixed = 1.0, so every back-test value is untouched — which is how we know
-  the change is confined to the forecast.
-
-  Effect on Q4-26, at the 1-yr T/C anchor: **$400,871 -> $355,182**, 11% lower.
-  At the base case, 16% lower. The direction is the point: when the curve sits
-  below the printed weeks, the old blend was anchored to rates that had
-  already printed.
-
-  It also removed a second defect. 2027Q1 used to read $142,205 at the base
-  case instead of $140,000, from a three-day sliver of one printed week
-  bleeding past the quarter boundary. A quarter that has not started now has
-  fixed = 0 and is pure curve.
-
-- **Holiday weeks are not pending weeks — model fix, not a data fix.** The
-  Baltic is a London exchange and does not publish over UK holidays: 14 of 250
-  weekly slots in five years, every Good Friday and Christmas/New Year, plus
-  the June 2022 Jubilee. The kernel built a synthetic 7-day grid and counted
-  those as weeks still awaiting publication, pushing every Q1 and Q2 fill
-  several points low — which is where the Q1-shaped residuals came from.
-
-  Fixed in `Kernel.quarter`: a gap *before* the anchor is dropped from the
-  denominator; gaps *after* it are genuinely pending. Completed quarters
-  spanning a holiday now fill to exactly 1.0.
-
-  **I first "fixed" this by interpolating the 14 missing weeks into
-  `baltic_weekly.csv`. That was wrong and was reverted.** It invented rates for
-  weeks that were never assessed, breaking rule 1. The series carries exactly
-  one interpolated row, 2026-08-14, agreed separately. When the defect is in
-  the model, fix the model.
-
-- **b is measured: 66 days. Corrected 20 Oct, same day I got it wrong.**
-  17 broker-reported fixtures across 11 operators, with ballast/laden/port
-  splits (`data/voyage_splits.csv`). Load to discharge = laden + port:
-
-  | route | n | round voyage | L2D share | L2D days |
-  |---|---|---|---|---|
-  | Brazil/China (TD15 proxy) | 10 | 85.1 d | 61.4% | 52.2 |
-  | USG/China + Japan (TD22) | 7 | 116.6 d | 79.0% | 92.2 |
-  | MEG (Baltic's own TD3C method) | — | 46.5 d | 51.6% | 24.0 |
-
-  Atlantic basket mean(52.2, 92.2) = 72.2; blended 0.88/0.12 = **66.4 days**.
-  The free fit against both targets independently wanted 66.
-
-  **The earlier 44.7-day estimate was wrong**, and worth recording why: it took
-  the Baltic's TD3C load-to-discharge ratio of 0.516 and applied it to Atlantic
-  routes. On those routes the real share is 61-79%, because port time is far
-  heavier and the ballast leg proportionally shorter. One route's ratio does
-  not travel.
-
-  **And the framing error that made the fit look unjustifiable**: I assumed
-  a+b should equal the round voyage. It should not. `a` is the lag from a
-  fixture being ASSESSED to it starting to earn; the next cargo is fixed
-  partway through the current voyage, so the two never had to sum to a round
-  trip. That false constraint drove two sessions of arguing the fit against
-  physics that were never in conflict.
-
-  Adopted: VLCC **14/66**, idle **0.19**. Coverage 3.79pts across the 18
-  disclosures, back-test 4.6%, Q4 reads 57.5%. Best on both targets and now
-  the physically measured one. `a` = 14 remains fitted — the fixture list
-  carries open dates but not laycan, so it is the one VLCC parameter with no
-  direct measurement, and the fit is flat between 10 and 18.
-
-- **The Suezmax basket is not one consistent series.** Found 20 Oct. The blend
-  is the mean of the routes *present* in a week — a blank is excluded, never
-  zeroed, which is correct and deliberate. But of 236 weeks only **11 carry all
-  three routes**; 133 are TD20 alone and 99 are TD20+TD27. TD33 first appears
-  2026-08-07, so every back-test quarter through 2026Q2 was fitted on a basket
-  that never contained it.
-
-  Measured on the 11 weeks where all three exist, TD20 alone runs -0.21% mean
-  and 1.99% mean absolute against the full basket, worst case +5.5%. Small —
-  but n=11, all from one regime, and the Suezmax kernel, its 1.03 uplift and
-  every Suezmax figure on the panel rest on it. Backfilling TD27 and TD33 from
-  the archived weeklies is the real fix and is **open**.
-
-- **Fleet-quality haircut — the live question.** Fearnleys quotes 1-yr T/C for
-  modern eco/scrubber tonnage; this fleet is older. At T/C rates the stock
-  yields 30.8% at $55.87; a 10% haircut gives 27.4%, a 20% haircut 24.1% — fair
-  at today's price. Needs the fleet age profile. Binding question for the
-  position.
+- **"The kernel fills too fast and front-runs a falling market."** The premise
+  that drove a month of work. It did not survive a walk-forward test: standing
+  at day 20 of each past quarter, falling markets came out mean -2%, median
+  +4%, n=5. The error was never in the fill. Every fix aimed at it — a 0.816
+  cap, a 0.966 cap, a 7-day lag, the measured a=27 — either failed its own test
+  or corrected a number nothing used.
+- **Three methods disagreed on 2026Q3.** Resolved by routing rather than
+  reconciliation: a quarter Frontline has disclosed is priced with `coverage()`
+  (3% mean absolute error over 17 quarters) and the kernel is not consulted.
+  The kernel is for quarters with no disclosure, which is the only place it has
+  to be used. Consensus independently puts Q3 at $2.27 EPS against the model's
+  $2.42.
+- **The locked share is not Frontline's coverage.** Still true, now handled by
+  naming it: the panel shows **fed**, defined as the share of a quarter's
+  earnings whose Baltic week has printed. See rule 6.
+- **The back-test was pinned to frozen model outputs.** It now checks against
+  what Frontline reported: 2.9% mean absolute error across 2025Q3-2026Q2.
 
 ## Interpolated data
 
@@ -275,14 +151,15 @@ replace the row and re-pin those tests.
 5. **The locked share counts every week that feeds a quarter, published or not.**
    Dividing by weeks present in the data returns ~100% by construction. This was
    a real bug: it reported 2026Q4 as 94% locked against a true 62%.
-6. **The panel shows covered, never locked.** `covered = elapsed + phi(1-elapsed)`,
-   phi = 0.447 from the 18 disclosures, reproducing them to 3.85 points mean
-   absolute error. It is what Frontline itself reports, so 30 November can
-   check it. The kernel's locked share stays inside the kernel as a weight and
-   is never displayed: it has no company meaning, and forecast error does not
-   fall as it rises. Note it was never used in the TCE arithmetic either —
-   `tce = Σ(w·rate)/Σw` over published weeks — it was only ever a display
-   output we mistook for a diagnostic.
+6. **Name the quantity on the panel, because there are two.** The tile shows
+   **fed** — the share of a quarter's earnings whose Baltic week has printed,
+   the kernel's own `locked`. That is NOT Frontline's "% covered", which counts
+   days on a contracted voyage and reads ~18 points lower at the same date.
+   Both are legitimate; conflating them cost a month. If a coverage figure is
+   ever displayed alongside, label both.
+   *(Replaces the old rule, which said the panel shows covered and never
+   locked, and quoted phi = 0.447 where the config said 0.397 — the rule had
+   drifted from the code it described.)*
 7. **One number per question on the dashboard.** It is read on the move, where a
    second number next to the first costs more than it adds. Detail lives here
    and in the forecast table. Do not re-add a "helpful" shadow figure.
