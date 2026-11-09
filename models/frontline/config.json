@@ -105,14 +105,15 @@
   },
   "quarters_note": "The window opens on the nearest UNREPORTED quarter and rolls forward one when Frontline reports. That first quarter always has a disclosed coverage % and contracted rate, so it is priced with coverage() and is frozen - the forward-curve controls cannot move it. Later quarters have no disclosure and use the kernel.",
   "consensus": {
-    "source": "3 analysts, normalized EPS, retrieved 2026-11-04",
+    "source": "Normalized EPS, retrieved 2026-11-04. Analyst count is per column: 3 for Q3, 2 for Q4, 4 for FY2026, 5 for FY2027.",
     "eps": {
       "2026Q3": 2.27,
       "2026Q4": 1.58,
       "FY2026": 10.24,
       "FY2027": 6.24
     },
-    "note": "Reference only, never an input. The Q4 estimate has not moved since before the spike began: 1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days, while the Q3 estimate rose 1.38 -> 2.27 over the same window. Consensus Q4 of 1.58 implies a VLCC spot TCE of about 92,000/day, below Q3 and a fifth of what is already locked in printed weeks."
+    "note": "Reference only, never an input. The Q4 estimate has not moved since before the spike began: 1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days, while the Q3 estimate rose 1.38 -> 2.27 over the same window. Consensus Q4 of 1.58 implies a VLCC spot TCE of about 92,000/day, below Q3 and a seventh of what is already locked in printed weeks.",
+    "basis": "Normalized EPS equals Frontline's ADJUSTED profit per share, which is what our bridge produces: ours gives 1.55 (2026Q1) and 2.61 (2026Q2) and the reports state exactly those. Frontline's GAAP figures for the same quarters were 2.51 and 2.96. TradingView's EPS series is GAAP and is NOT comparable - do not substitute it here."
   },
   "tce_to_profit": {
     "gap_musd": 173.1,

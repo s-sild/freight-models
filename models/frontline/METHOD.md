@@ -130,6 +130,10 @@ forward from 28 Aug). The 54/46 split of non-VLCC spot days is the ratio of
 2026Q2 and held flat — largely fixed cost, but it will understate the gap if
 the fleet grows.
 
+The output is adjusted EPS, and the declared dividend has equalled adjusted
+EPS to the cent in every quarter checked (0.19, 1.03, 1.55, 2.61). While that
+policy holds, this is also the dividend forecast.
+
 ---
 
 # The variables to check
@@ -151,10 +155,14 @@ things at once: the Q3 predictions on record (`predictions/2026Q3.md`), and
 Frontline's disclosed **Q4 covered rate**, which is the direct test of
 variable 1 — the one the whole forecast hangs on.
 
-**Where we disagree with the market.** Consensus Q4 EPS is $1.58 against our
-$7.52. Working backwards, $1.58 implies a Q4 VLCC spot TCE near $92,000/day,
-below Q3 and a fifth of what is already locked in printed weeks. The consensus
-Q4 figure has not moved since before the spike began (1.40 / 1.60 / 1.58 /
-1.58 / 1.58 at 90/60/30/7/0 days) while the Q3 figure rose 1.38 -> 2.27. Three
-analysts cover the stock. Read that as stale rather than considered — but it
-is the only independent check available, and it disagrees by 4.8x.
+**Where we disagree with the market.** Both figures below are **adjusted**
+EPS, the basis this model produces and the one Frontline's normalized
+consensus is quoted on. GAAP is a different number — 2.51 against 1.55
+adjusted in 2026Q1 — so a GAAP series is not a comparator.
+
+Consensus Q4 EPS is $1.58 against our $7.52, a 4.8x gap. Working backwards,
+$1.58 implies a Q4 VLCC spot TCE near $92,000/day, below Q3 and a seventh of
+what is already locked in printed weeks. It has not moved since before the
+spike began (1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days) while the
+Q3 figure rose 1.38 -> 2.27. **Two** analysts carry the Q4 cell. Read it as
+stale rather than considered — but it is the only independent check available.
