@@ -18,3 +18,5 @@ reported,vessel,build_year,operator,charterer,status,open_port,open_date,route,l
 2026-09-03,Eagle Ventura,2023,Stasco,Vitol,Fixed,Rotterdam,2026-09-28,USG/Japan,270,187913,127,297743,82,27,63,10,broker fixture list via user 2026-10-20
 2026-11-02,Front Tana,2022,Frontline,Bahri,Fixed,Chiba,2026-10-30,,270,859549,51,792874,55,41,45,14,"broker fixture detail via user 2026-11-13; route hidden in source view"
 2026-11-02,Front Beaver,2023,Frontline,Bahri,Fixed,Tianjin,2026-10-29,,270,842513,52,797738,55,43,45,13,"broker fixture detail via user 2026-11-13; route hidden in source view"
+2026-10-21,Front Empire,2018,Frontline,Bahri,Fixed,Sri Racha,2026-10-18,,270,823167,52,885037,48,35,50,15,"broker fixture detail via user 2026-11-13; route hidden in source view; last done quoted RSea/Korea WS920 270k"
+2026-10-06,Front Gander,2023,Frontline,Petrobras,Fixed,Bilbao,2026-10-16,,260,762638,87,1054274,63,27,58,16,"broker fixture detail via user 2026-11-13; route hidden in source view; last done quoted Brazil/China WS480 260k"
