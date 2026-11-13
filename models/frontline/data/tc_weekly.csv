@@ -11,3 +11,4 @@ week_ending,vlcc_1yr_tc,smax_1yr_tc,afra_1yr_tc,vlcc_fixtures,vlcc_meg_avail_30d
 2026-10-23,220000,165000,100000,31,105,Fearnleys weekly week 43; vlcc_fixtures = VLCCs fixed in all areas last week
 2026-10-30,220000,165000,100000,72,86,Fearnleys weekly week 44; vlcc_fixtures = VLCCs fixed in all areas last week
 2026-11-06,220000,165000,100000,50,98,"Fearnleys weekly week 45; vlcc_fixtures = VLCCs fixed in all areas last week. Stated weekly changes -22 and +12 reconcile exactly against week 44 (72, 86). All three T/C rates printed a $0 weekly change."
+2026-11-13,210000,155000,95000,45,99,"Fearnleys weekly week 46; vlcc_fixtures = VLCCs fixed in all areas last week. First T/C move since 2026-10-16: VLCC -10,000, Suezmax -10,000, Aframax -5,000 after four weeks flat at 220/165/100. All five stated weekly changes reconcile exactly against week 45 (220000, 165000, 100000, 50, 98)."
