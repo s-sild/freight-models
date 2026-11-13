@@ -7,16 +7,18 @@ reported,vessel,build_year,operator,charterer,status,open_port,open_date,route,l
 2026-10-08,Nissos Nikouria,2022,Koch,Petrobras,Fixed,Pengerang,2026-10-11,Brazil/China,260,792036,84,871120,77,37,50,13,broker fixture list via user 2026-10-20
 2026-10-08,Pertamina Prime,2021,Trafigura,Petrobras,Fixed,Paradip,2026-10-06,Brazil/China,260,770290,84,805282,81,36,48,15,broker fixture list via user 2026-10-20
 2026-10-07,Eagle Vallery,2022,CSSA,Petrobras,Fixed,Sikka,2026-10-07,Brazil/China,260,737453,88,850669,77,36,50,14,broker fixture list via user 2026-10-20
-2026-10-06,FRONT GANDER,2023,Frontline,Petrobras,Fixed,Bilbao,2026-10-16,Brazil/China,260,742468,88,1000873,66,26,59,15,broker fixture list via user 2026-10-20
-2026-09-03,FRONT ALTA,2022,Frontline,Petrobras,Fixed,Chiba,2026-08-24,Brazil/China,260,225230,91,209282,98,40,40,20,broker fixture list via user 2026-10-20
 2026-10-07,Esteem Explorer,2020,Sinokor,Cosmo,Fixed,Singapore,2026-10-04,USG/China,270,652540,114,682918,110,37,50,13,broker fixture list via user 2026-10-20
 2026-09-11,Red Nova,2013,Trafigura,Vitol,Fixed,Rotterdam,2026-09-28,USG/China,270,245296,114,363932,80,21,65,14,broker fixture list via user 2026-10-20
 2026-09-09,DHT Mustang,2018,Mercuria,Unipec,Fixed,Galveston,2026-09-30,USG/China,270,213483,114,349526,74,0,70,30,broker fixture list via user 2026-10-20
-2026-09-08,FRONT BEAULY,2023,Frontline,Cosmo,Fixed,Rotterdam,2026-10-07,USG/China,270,221837,112,328626,78,18,70,11,broker fixture list via user 2026-10-20
 2026-09-04,Agios Nikolas,2019,Sinokor,Occidental,Fixed,Galveston,2026-09-14,USG/Japan,270,183197,121,252834,94,1,58,41,broker fixture list via user 2026-10-20
 2026-09-03,Maran Apollo,2016,Marathon,Idemitsu,Fixed,Qingdao,2026-08-26,USG/China,270,210351,114,208157,116,42,48,10,broker fixture list via user 2026-10-20
 2026-09-03,Eagle Ventura,2023,Stasco,Vitol,Fixed,Rotterdam,2026-09-28,USG/Japan,270,187913,127,297743,82,27,63,10,broker fixture list via user 2026-10-20
-2026-11-02,Front Tana,2022,Frontline,Bahri,Fixed,Chiba,2026-10-30,,270,859549,51,792874,55,41,45,14,"broker fixture detail via user 2026-11-13; route hidden in source view"
-2026-11-02,Front Beaver,2023,Frontline,Bahri,Fixed,Tianjin,2026-10-29,,270,842513,52,797738,55,43,45,13,"broker fixture detail via user 2026-11-13; route hidden in source view"
-2026-10-21,Front Empire,2018,Frontline,Bahri,Fixed,Sri Racha,2026-10-18,,270,823167,52,885037,48,35,50,15,"broker fixture detail via user 2026-11-13; route hidden in source view; last done quoted RSea/Korea WS920 270k"
-2026-10-06,Front Gander,2023,Frontline,Petrobras,Fixed,Bilbao,2026-10-16,,260,762638,87,1054274,63,27,58,16,"broker fixture detail via user 2026-11-13; route hidden in source view; last done quoted Brazil/China WS480 260k"
+2026-11-02,Front Tana,2022,Frontline,Bahri,Fixed,Chiba,2026-10-30,RSea/Korea,270,859549,51,792874,55,41,45,14,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-11-02,Front Beaver,2023,Frontline,Bahri,Fixed,Tianjin,2026-10-29,RSea/Korea,270,842513,52,797738,55,43,45,13,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-10-21,Front Empire,2018,Frontline,Bahri,Fixed,Sri Racha,2026-10-18,RSea/Korea,270,823167,52,885037,48,35,50,15,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-10-06,Front Gander,2023,Frontline,Petrobras,Fixed,Bilbao,2026-10-16,Brazil/China,260,762638,87,1054274,63,27,58,16,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-09-17,Front Morgan,2021,Frontline,BP,Fixed,Daesan,2026-09-21,AG/Korea,270,876299,49,855750,63,45,43,12,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-09-15,Front Empire,2018,Frontline,PTT,Fixed,Tanjung Bruas,2026-09-20,AG/Spore,270,849536,32,950308,28,31,45,24,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-09-08,Front Beauly,2023,Frontline,Cosmo,Fixed,Rotterdam,2026-10-07,USG/China,270,228771,107,343211,74,20,64,16,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-09-03,Front Alta,2022,Frontline,Petrobras,Fixed,Chiba,2026-08-24,Brazil/China,260,215450,95,200733,101,39,43,18,Frontline fixture tracker via user 2026-11-13 (routes included)
+2026-08-24,Front Maine,2021,Frontline,Petrobras,Fixed,Linggi Anchorage,2026-08-20,Brazil/USWC,260,215601,79,196409,86,34,41,24,Frontline fixture tracker via user 2026-11-13 (routes included)

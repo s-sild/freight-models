@@ -12,33 +12,31 @@ against idle time under 1.5 days, so `rv` is a modelled round trip back to the
 load area and `actual` is the leg in hand. The original table multiplied the
 percentages by `rv_days` and overstated every figure below.
 
-The fixtures settle which base is right on their own. A laden leg on a given
-route is near-constant, so the correct base is the one with the tighter spread:
+The source proves the base itself: it gives idle time twice, as days and as a
+percentage, and the implied total is `actual_days` every time — 1.00d = 1.8%
+gives 55.6 against 55 actual; 1.48d = 2.7% gives 54.8 against 55; 0.79d = 1.6%
+gives 49.4 against 48; 0.26d = 0.4% gives 65.0 against 63.
 
-| route | laden days off `rv_days` | off `actual_days` |
-|---|---|---|
-| Brazil/China | 40.4, sd 4.6 | **38.5, sd 0.9** |
-| USG/China | 68.8, sd 10.8 | **53.8, sd 1.6** |
-
-The levels agree independently: Brazil-China is ~11,500 nm, 40 days at 12
-knots; USG-China ~15,000 nm, ~52 days. `actual_days` lands on both.
+**MEG/East is now measured.** Frontline's own fixture list carries routes, and
+five of its voyages are East of Suez (3 RSea/Korea, 1 AG/Korea, 1 AG/Spore).
+The leg is no longer an assumption.
 
 | route | n | actual_days | ballast % | load-to-discharge |
 |---|---|---|---|---|
-| Brazil/China | 10 | 81.9 | 38.2% | 49.9d |
-| USG/Far East | 7 | 90.6 | 20.9% | 70.0d |
-| MEG/China | — | 45.0 | 46.7% | 24.0d |
+| Brazil/China | 10 | 81.9 | 38.2% | 50.0d |
+| USG/Far East | 7 | 90.0 | 21.1% | 69.4d |
+| MEG/East | 5 | 49.8 | 39.0% | 29.9d |
 
-MEG is assumed, not measured — no routed MEG fixture in the sample. The four
-Frontline fixtures added 2026-11-13 have no route in the source view, so they
-do not fill this gap.
+Measured MEG runs longer and lighter on ballast than the 45.0d / 46.7% / 24.0d
+previously assumed. Where a fixture appears at two vintages the later one is
+kept — Gander, Alta and Beauly were each carried twice.
 
 Blended at the spot-blend weights (0.88 Atlantic / 0.12 MEG, Atlantic split
 50/50 Brazil/USG to match the equal TD15/TD22 weighting):
 
-- load-to-discharge **55.6 days** (was stated as 66.6)
+- load-to-discharge **56.3 days** (was stated as 66.6)
 
-**This is no longer a confirmation of `kernel.vlcc.b = 66`.** It reads 16%
+**This is no longer a confirmation of `kernel.vlcc.b = 66`.** It reads 15%
 below it. `b` was not derived from this file, so the kernel is unchanged, but
 it now rests on its curve fit alone. Q4 2026 is insensitive — at 88% fed, a
 shorter window raises the quarter (b=66 gives $491,905, b=56 gives $517,621),
@@ -91,6 +89,6 @@ displayed "% covered" number, not in the rate blend — see `notes.md`.
   ballast legs. The cycle is likely high against a multi-year average: the
   disclosed-ballast route gives 87.2d (median 86.7, range 80-96) against 94.1
   here.
-- The MEG leg is assumed throughout.
+- The MEG leg is now measured (n=5) rather than assumed.
 - Suezmax and Aframax have no fixture data at all; their caps are derived from
   the coverage disclosures alone.

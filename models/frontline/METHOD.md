@@ -57,7 +57,7 @@ Suezmax   a = 20   b = 44
   ratably from commencement of loading to completion of discharge. It was
   FITTED. The 66.6-day fixture measurement that used to corroborate it was
   wrong (see `data/voyage_cycle.md`, corrected 2026-11-13); on the right basis
-  the fixtures give 55.6 days, 16% below. `b` has no independent support.
+  the fixtures give 56.3 days, 15% below. `b` has no independent support.
   Q4 2026 is insensitive at 88% fed, and a shorter window would raise it.
 - **`a` is the lag from assessment to earning, NOT the ballast leg.** It is
   FITTED, and it is the last parameter in the chain standing on a curve fit.
