@@ -1,11 +1,10 @@
 reported,vessel,build_year,operator,charterer,status,open_port,route,load_mts,rv_tce,rv_days,source
-2026-10-06,FRONT GANDER,2023,Frontline,Petrobras,On Subs,Bilbao,Brazil/China,260,733959,88,
-2026-09-17,FRONT MORGAN,2021,Frontline,BP,Fixed,Daesan,MEG/FEAST,270,876299,49,
-2026-09-15,FRONT EMPIRE,2018,Frontline,PTT,Fixed,Tanjung Bruas,MEG/FEAST,270,780344,34,
-2026-09-08,FRONT BEAULY,2023,Frontline,Cosmo,Fixed,Rotterdam,USG/China,270,209438,120,
-2026-09-09,FRONT ALTA,2022,Frontline,Petrobras,Fixed,Chiba,Brazil/China,260,226448,86,
-2026-08-24,FRONT MAINE,2021,Frontline,Petrobras,Fixed,Linggi Anchorage,Brazil/USWC,260,217204,77,
-2026-11-02,FRONT TANA,2022,Frontline,Bahri,Fixed,Chiba,,270,859549,51,"Charterer Bahri Oil Transportation. rv_tce/rv_days are RV TCE EXCLUDING idle days; actual incl. idle was 792874 @ 55 days. Open 2026-10-30. Route not shown in the source view - left blank per rule 1. Full splits in voyage_splits.csv."
-2026-11-02,FRONT BEAVER,2023,Frontline,Bahri,Fixed,Tianjin,,270,842513,52,"Charterer Bahri Oil Transportation. rv_tce/rv_days are RV TCE EXCLUDING idle days; actual incl. idle was 797738 @ 55 days. Open 2026-10-29. Route not shown in the source view - left blank per rule 1. Full splits in voyage_splits.csv."
-2026-10-21,FRONT EMPIRE,2018,Frontline,Bahri,Fixed,Sri Racha,,270,823167,52,"rv_tce/rv_days are RV excl idle; actual incl idle 885037 @ 48 days. Open 2026-10-18. Route hidden; last done quoted RSea/Korea. Splits in voyage_splits.csv."
-2026-10-06,FRONT GANDER,2023,Frontline,Petrobras,Fixed,Bilbao,,260,762638,87,"rv_tce/rv_days are RV excl idle; actual incl idle 1054274 @ 63 days. Open 2026-10-16. Route hidden; last done quoted Brazil/China. Splits in voyage_splits.csv."
+2026-11-02,FRONT TANA,2022,Frontline,Bahri,Fixed,Chiba,RSea/Korea,270,859549,51,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 792874 @ 55d. Splits in voyage_splits.csv.
+2026-11-02,FRONT BEAVER,2023,Frontline,Bahri,Fixed,Tianjin,RSea/Korea,270,842513,52,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 797738 @ 55d. Splits in voyage_splits.csv.
+2026-10-21,FRONT EMPIRE,2018,Frontline,Bahri,Fixed,Sri Racha,RSea/Korea,270,823167,52,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 885037 @ 48d. Splits in voyage_splits.csv.
+2026-10-06,FRONT GANDER,2023,Frontline,Petrobras,Fixed,Bilbao,Brazil/China,260,762638,87,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 1054274 @ 63d. Splits in voyage_splits.csv.
+2026-09-17,FRONT MORGAN,2021,Frontline,BP,Fixed,Daesan,AG/Korea,270,876299,49,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 855750 @ 63d. Splits in voyage_splits.csv.
+2026-09-15,FRONT EMPIRE,2018,Frontline,PTT,Fixed,Tanjung Bruas,AG/Spore,270,849536,32,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 950308 @ 28d. Splits in voyage_splits.csv.
+2026-09-08,FRONT BEAULY,2023,Frontline,Cosmo,Fixed,Rotterdam,USG/China,270,228771,107,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 343211 @ 74d. Splits in voyage_splits.csv.
+2026-09-03,FRONT ALTA,2022,Frontline,Petrobras,Fixed,Chiba,Brazil/China,260,215450,95,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 200733 @ 101d. Splits in voyage_splits.csv.
+2026-08-24,FRONT MAINE,2021,Frontline,Petrobras,Fixed,Linggi Anchorage,Brazil/USWC,260,215601,79,Frontline fixture tracker via user 2026-11-13; rv_tce/rv_days are RV excl idle. actual incl idle 196409 @ 86d. Splits in voyage_splits.csv.
