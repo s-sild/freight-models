@@ -54,9 +54,11 @@ Suezmax   a = 20   b = 44
 ```
 
 - **`b` is the load-to-discharge window** — Frontline recognises revenue
-  ratably from commencement of loading to completion of discharge. MEASURED at
-  66.6 days from 17 broker fixtures (`data/voyage_cycle.md`), against the 66
-  in config. Independent of anything it was fitted to.
+  ratably from commencement of loading to completion of discharge. It was
+  FITTED. The 66.6-day fixture measurement that used to corroborate it was
+  wrong (see `data/voyage_cycle.md`, corrected 2026-11-13); on the right basis
+  the fixtures give 55.6 days, 16% below. `b` has no independent support.
+  Q4 2026 is insensitive at 88% fed, and a shorter window would raise it.
 - **`a` is the lag from assessment to earning, NOT the ballast leg.** It is
   FITTED, and it is the last parameter in the chain standing on a curve fit.
   The measured ballast leg is 27.5 days; substituting it worsens the back-test

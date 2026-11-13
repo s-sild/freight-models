@@ -5,23 +5,44 @@ reported 2026-09-03 to 2026-10-19) plus Frontline's own ballast-day disclosures.
 
 ## Round voyage, from the fixture list
 
-| route | n | rv_days | ballast % | load-to-discharge |
+**Corrected 2026-11-13.** The ballast/laden/port percentages are a share of
+`actual_days`, not `rv_days`. The source carries both and they are not the
+same voyage: across 21 fixtures `rv_days − actual_days` runs from −7 to +45
+against idle time under 1.5 days, so `rv` is a modelled round trip back to the
+load area and `actual` is the leg in hand. The original table multiplied the
+percentages by `rv_days` and overstated every figure below.
+
+The fixtures settle which base is right on their own. A laden leg on a given
+route is near-constant, so the correct base is the one with the tighter spread:
+
+| route | laden days off `rv_days` | off `actual_days` |
+|---|---|---|
+| Brazil/China | 40.4, sd 4.6 | **38.5, sd 0.9** |
+| USG/China | 68.8, sd 10.8 | **53.8, sd 1.6** |
+
+The levels agree independently: Brazil-China is ~11,500 nm, 40 days at 12
+knots; USG-China ~15,000 nm, ~52 days. `actual_days` lands on both.
+
+| route | n | actual_days | ballast % | load-to-discharge |
 |---|---|---|---|---|
-| Brazil/China | 10 | 85.1 | 38.2% | 52.3d |
-| USG/Far East | 7 | 116.6 | 20.9% | 92.1d |
+| Brazil/China | 10 | 81.9 | 38.2% | 49.9d |
+| USG/Far East | 7 | 90.6 | 20.9% | 70.0d |
 | MEG/China | — | 45.0 | 46.7% | 24.0d |
 
-MEG is assumed, not measured — no MEG fixtures in the sample.
+MEG is assumed, not measured — no routed MEG fixture in the sample. The four
+Frontline fixtures added 2026-11-13 have no route in the source view, so they
+do not fill this gap.
 
 Blended at the spot-blend weights (0.88 Atlantic / 0.12 MEG, Atlantic split
 50/50 Brazil/USG to match the equal TD15/TD22 weighting):
 
-- round-voyage cycle **94.1 days**
-- of which ballast **31.6%** = 29.7 days
-- load-to-discharge **66.6 days**
+- load-to-discharge **55.6 days** (was stated as 66.6)
 
-That last figure is an independent confirmation of `kernel.vlcc.b = 66`, from
-data never used to fit it.
+**This is no longer a confirmation of `kernel.vlcc.b = 66`.** It reads 16%
+below it. `b` was not derived from this file, so the kernel is unchanged, but
+it now rests on its curve fit alone. Q4 2026 is insensitive — at 88% fed, a
+shorter window raises the quarter (b=66 gives $491,905, b=56 gives $517,621),
+so the figure in the model is the conservative one.
 
 ## Fixture to fixture
 
