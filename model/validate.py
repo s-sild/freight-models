@@ -69,7 +69,7 @@ tce, obs = kv.quarter(VU, "2026Q3")
 # figures of 156,665 / 96,253, which were computed with the gap left open.
 # Only ever re-pin these when the inputs deliberately change - otherwise the
 # tests stop catching anything.
-check("Kernel VLCC 2026Q3", tce, 160622, 400, "$/day")
+check("Kernel VLCC 2026Q3", tce, 159362, 400, "$/day")
 check("Kernel VLCC 2026Q3 locked share is 1.0 (quarter fully fed)", obs, 1.0, 0.001)
 
 # The locked share must be measured against every week that FEEDS a quarter,
@@ -162,23 +162,31 @@ check_true("An observed week IS uplifted",
            abs(VU[max(VU)] / V[max(V)] - CFG["realised_uplift"]["vlcc"]) < 1e-12)
 
 tce_s, _ = ks.quarter(SU, "2026Q3")
-check("Kernel Suezmax 2026Q3", tce_s, 97732, 400, "$/day")
+check("Kernel Suezmax 2026Q3", tce_s, 97158, 400, "$/day")
 
 
 # ---- kernel back-test ----------------------------------------------------
 # These are the errors we measured against reported TCEs.
 # Against what Frontline ACTUALLY reported, not a frozen model output. The
-# uplift that turns the benchmark blend into an owner rate is 1.02, measured
-# on the 8 post-Euronav quarters; it was 1.05, fitted across 2022-2026 and so
+# uplift that turns the benchmark blend into an owner rate is 1.012, measured
+# on the 9 post-Euronav quarters; it was 1.05, fitted across 2022-2026 and so
 # across two different fleets. Tolerance is 10% - this is the model's real
 # accuracy, and pinning it tighter would be pinning noise.
-ACTUAL = {"2025Q3": 34273, "2025Q4": 74165, "2026Q1": 103494, "2026Q2": 152731}
+#
+# 2026Q3 added 2026-11-20. It is the first quarter the model forecast BEFORE
+# the fact rather than fitted after it, and the kernel missed high by 8.2%:
+# predicted 160,622, reported 148,500. It is in the back-test at its reported
+# value like any other quarter, so the error it carries is real.
+ACTUAL = {"2025Q3": 34273, "2025Q4": 74165, "2026Q1": 103494,
+          "2026Q2": 152731, "2026Q3": 148500}
 _errs = []
 for q, act in ACTUAL.items():
     gv, _ = kv.quarter(VU, q)
     _errs.append(abs(gv / act - 1))
     check(f"Back-test vs reported VLCC TCE {q}", gv, act, act * 0.10, "$/day")
-check("Back-test mean absolute error, VLCC", st.mean(_errs) * 100, 2.9, 1.0, "%")
+# 2.9% over the four fitted quarters; 4.0% once 2026Q3 - the only quarter
+# forecast before the fact - is in it. The second number is the honest one.
+check("Back-test mean absolute error, VLCC", st.mean(_errs) * 100, 4.0, 1.0, "%")
 check_true("The 1.02 uplift beats the old 1.05 on the same quarters",
            st.mean(_errs) < st.mean([abs(kv.quarter(VU, q)[0] / 1.02 * 1.05 / a - 1)
                                      for q, a in ACTUAL.items()]))
@@ -188,7 +196,7 @@ check_true("The 1.02 uplift beats the old 1.05 on the same quarters",
 K = CFG["coverage"]["k"]
 k = K["vlcc"]
 check("Coverage model, 2026Q3 VLCC (156,900 @ 86%)",
-      coverage(156900, 86, k), 140645, 50, "$/day")
+      coverage(156900, 86, k), 141084, 50, "$/day")
 
 # implied k across every quarter where the next quarter's actual is known
 qs = [r for r in quarterly if r["quarter"]]
@@ -198,14 +206,14 @@ for i in range(len(qs) - 1):
     act = num(qs[i + 1]["vlcc_spot_tce"])
     if None not in (c, cov, act):
         ks_list.append(implied_k(c, cov, act))
-check("Implied k, number of quarters", float(len(ks_list)), 17.0, 0.5)
-check("Implied k, median", st.median(ks_list), 0.275, 0.005)
-check("Config k, VLCC", K["vlcc"], 0.26, 0.001)
-check("Config k, Suezmax", K["smax"], 0.55, 0.001)
-check("Config k, Aframax", K["lr2"], 0.45, 0.001)
+check("Implied k, number of quarters", float(len(ks_list)), 18.0, 0.5)
+check("Implied k, median", st.median(ks_list), 0.280, 0.005)
+check("Config k, VLCC", K["vlcc"], 0.28, 0.001)
+check("Config k, Suezmax", K["smax"], 0.54, 0.001)
+check("Config k, Aframax", K["lr2"], 0.46, 0.001)
 check_true("Suezmax k exceeds VLCC k - shorter voyage, less ballast in the tail",
            K["smax"] > K["vlcc"])
-check("Implied k, mean", st.mean(ks_list), 0.297, 0.005)
+check("Implied k, mean", st.mean(ks_list), 0.315, 0.005)
 
 
 # ---- cash flow and implied yield ----------------------------------------

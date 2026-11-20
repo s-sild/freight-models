@@ -176,12 +176,16 @@ for (const r of quarterly) {
 // 100% fed and tells you nothing.
 const liveQ = cfg.quarters_12m.find(q => quarterBounds(q)[1] > today) ?? cfg.quarters_12m.at(-1);
 const discQ = cfg.quarters_12m[0];
+// Once Frontline reports, the disclosed quarter IS the running one — from
+// 2026-11-20 both are 2026Q4 — and the tile would print it twice. Show the
+// next quarter instead: the disclosed rate for one, the kernel for the other.
+const fwdQ = discQ === liveQ ? (cfg.quarters_12m[1] ?? liveQ) : liveQ;
 const qShort = q => "Q" + q.slice(-1);
 const qYear  = q => q.slice(0, 4);
 // "Q3 and Q4 2026" when they share a year, "Q4 2026 and Q1 2027" when they don't
-const estHead = qYear(discQ) === qYear(liveQ)
-  ? `${qShort(discQ)} and ${qShort(liveQ)} ${qYear(liveQ)}`
-  : `${qShort(discQ)} ${qYear(discQ)} and ${qShort(liveQ)} ${qYear(liveQ)}`;
+const estHead = qYear(discQ) === qYear(fwdQ)
+  ? `${qShort(discQ)} and ${qShort(fwdQ)} ${qYear(fwdQ)}`
+  : `${qShort(discQ)} ${qYear(discQ)} and ${qShort(fwdQ)} ${qYear(fwdQ)}`;
 const qV = kernelQuarter(VU, liveQ, kv), qS = kernelQuarter(SU, liveQ, ks);
 const [qsMs, qeMs] = quarterBounds(liveQ);
 const qLen = Math.round((qeMs - qsMs) / DAY);
@@ -286,8 +290,8 @@ document.getElementById("tiles").innerHTML = `
   <div class="qrows">
     <div class="rowline"><span class="muted">${qShort(discQ)} VLCC spot TCE</span><span id="ed-v">—</span></div>
     <div class="rowline"><span class="muted">${qShort(discQ)} Smax spot TCE</span><span id="ed-s">—</span></div>
-    <div class="rowline part"><span class="muted">${qShort(liveQ)} VLCC spot TCE</span><span id="eq-v">—</span></div>
-    <div class="rowline"><span class="muted">${qShort(liveQ)} Smax spot TCE</span><span id="eq-s">—</span></div>
+    <div class="rowline part"><span class="muted">${qShort(fwdQ)} VLCC spot TCE</span><span id="eq-v">—</span></div>
+    <div class="rowline"><span class="muted">${qShort(fwdQ)} Smax spot TCE</span><span id="eq-s">—</span></div>
   </div>
   <div class="note" style="margin-top:8px">Per available spot day, ballast to discharge.</div>
 </div>
@@ -483,7 +487,7 @@ function render() {
       <tr><td class="muted">ratio</td>${qs.map(q => C[q] ? `<td class="${epsBy[q]/C[q]>1.5?"down":""}">${(epsBy[q]/C[q]).toFixed(1)}&times;</td>` : "<td>—</td>").join("")}<td></td></tr>`;
   }
   document.getElementById("fc").innerHTML = rows;
-  for (const [q, pfx] of [[discQ, "ed"], [liveQ, "eq"]]) {
+  for (const [q, pfx] of [[discQ, "ed"], [fwdQ, "eq"]]) {
     const r = liveRates[q]; if (!r) continue;
     document.getElementById(pfx + "-v").textContent = fmt.usd(r.v);
     document.getElementById(pfx + "-s").textContent = fmt.usd(r.s);

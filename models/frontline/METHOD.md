@@ -35,12 +35,17 @@ Applied at series construction, to **printed weeks only**. Never inside the
 kernel, and never to a forecast anchor you type — that is already an
 owner-level rate, and marking it up again was the 140 -> 147 bug.
 
-**1.02 is measured**: realised VLCC TCE / blend over the 8 post-Euronav
-quarters is mean 1.020, sd 0.044. It reads 1.020 at a blend of 101,437
-(2026Q1) and 1.018 at 150,097 (2026Q2). `corr(rate level, ratio) = +0.02`.
+Both are MEASURED over the 9 post-Euronav quarters 2024Q3-2026Q3:
+VLCC mean **1.012** sd 0.048, Suezmax mean **1.026** sd 0.053.
 
-*Weak spot: 1.03 for Suezmax is NOT measured on the same basis — the basket
-above makes the ratio uncomputable. It is carried forward unchanged.*
+Suezmax was previously carried as an unmeasured 1.03. It is now measured and
+the number barely moved — but its basket composition shifts over the window
+(TD33 only from 2026-08-07), so the denominator is not one consistent series.
+
+Capture does NOT fall at high rates. 2026Q3 came in at 0.943, which was the
+feared failure, but `corr(blend level, ratio) = -0.30` at n=9 and the two
+lowest ratios in the sample are 0.937 at a blend of 36,618 and 0.943 at
+157,473. Both ends of the range. It is dispersion, not a rate effect.
 
 ## Step 3 — Weekly rates to one quarterly rate: the kernel
 
@@ -110,7 +115,11 @@ quarter's report — **use their numbers, not ours**. The coverage model
 back-tests at 3% mean absolute error against the kernel's 11%.
 
 `k` is the share of the contracted rate the uncovered days earn, measured over
-17 quarters. The ordering follows voyage length: Suezmax `b` = 44 against
+18 quarters as a median. **Its spread matters more than its level**: VLCC sd is
+0.175 on a median of 0.280, which on the 2026Q4 disclosure is worth +/-31,400
+a day, about 0.5 of adjusted EPS. It does not scale with the rate —
+`corr(contracted rate, k) = +0.02`, and the three highest-rate quarters gave
+0.58, 0.11 and 0.62. Treat any single-point output of step 5 accordingly. The ordering follows voyage length: Suezmax `b` = 44 against
 VLCC 66, so a cargo fixed after the report date lands more of its window
 inside the quarter and the Suezmax tail is less ballast-heavy.
 
@@ -144,27 +153,35 @@ Ordered by how much damage a wrong value does.
 
 | # | variable | status | how it fails |
 |---|---|---|---|
-| 1 | **uplift 1.02 at extreme rates** | measured to 150k, applied at 475k | A 3.2x extrapolation. If capture falls at high rates, Q4 is wrong and nothing else saves it. Everything rests here. |
-| 2 | **`a` = 14** | FITTED, not measured | The only curve-fit left. Measured ballast is 27.5d; using it worsens the back-test. Unresolved, not settled. |
-| 3 | **Suezmax uplift 1.03** | NOT measured | Its basket is inconsistent, so the ratio cannot be computed. |
-| 4 | **Suezmax kernel 20/44** | SCALED from VLCC | No Suezmax voyage splits exist. |
-| 5 | **coverage % for an undisclosed quarter** | assumed 79% | Historical mean. Frontline discloses the real one each quarter. |
-| 6 | **54/46 non-VLCC day split** | one quarter | From 2026Q2 actuals only. |
-| 7 | **TCE-to-profit gap 173.1** | one quarter | Calibrated on 2026Q2, held flat across a changing fleet. |
+| 1 | **`k` spread** | median over 18q, sd 0.175 | Step 5 now prices Q4 off Frontline's own disclosure, so k IS the forecast. One sd is +/-31,400/day, about 0.5 of adjusted EPS, and k does not scale with the rate. The single biggest source of error in the current number. |
+| 2 | **`a` = 14** | FITTED, not measured | The last curve fit. `b` = 66 lost its fixture corroboration on 2026-11-13 (voyage_cycle.md), so both kernel parameters now stand on the fit alone. |
+| 3 | **Suezmax kernel 20/44** | SCALED from VLCC | No Suezmax fixture has ever entered the sample. 26 voyages in voyage_splits.csv, all VLCC, while Suezmax fell 51% in the week to 2026-11-06. Weakest leg carrying the most recent movement. |
+| 4 | **Suezmax basket** | inconsistent series | Of 236 weeks only 11 carry all three routes; TD33 starts 2026-08-07. The uplift is now measured on it, but the denominator changes composition. |
+| 5 | **54/46 non-VLCC day split** | one quarter | From 2026Q2 actuals only. |
+| 6 | **forward day counts** | Q2 2026 vintage | `earnings_days.csv` is the 12m window disclosed on 2026-08-28. Two VLCCs sold, two newbuildings delivered in Q4 and a Suezmax put on a 3-year charter since. Not refreshed - the Q3 press release does not carry the forward table. |
 
-**The near-term test.** Q3 2026 reports in late November and settles two
-things at once: the Q3 predictions on record (`predictions/2026Q3.md`), and
-Frontline's disclosed **Q4 covered rate**, which is the direct test of
-variable 1 — the one the whole forecast hangs on.
+**RESOLVED 2026-11-20 by the Q3 report.** The uplift extrapolation that was
+variable 1 did not fail: 2026Q3 capture was 0.943 against a mean of 1.012, but
+`corr(blend level, ratio) = -0.30` and 0.937 occurred at a blend of 36,618.
+Dispersion, not a rate effect. The TCE-to-profit gap (0.1% off), the charter
+rate (1.1%) and the whole EPS bridge (Q3 EPS 2.42 against 2.38) all held. The
+one thing that missed was the rate forecast, by +8.2%.
+
+**The near-term test.** Q4 2026 reports late February 2027. Q4 is 92% fed and
+priced off Frontline's disclosure (VLCC 562,600 at 68% covered), so it mostly
+tests `k`. The open quarter is **Q1 2027** - 10% fed on VLCC, 4% on Suezmax,
+and the quarter the 2026-11-13 collapse actually lands in.
 
 **Where we disagree with the market.** Both figures below are **adjusted**
 EPS, the basis this model produces and the one Frontline's normalized
-consensus is quoted on. GAAP is a different number — 2.51 against 1.55
-adjusted in 2026Q1 — so a GAAP series is not a comparator.
+consensus is quoted on. GAAP is a different number - 2.51 against 1.55
+adjusted in 2026Q1 - so a GAAP series is not a comparator.
 
-Consensus Q4 EPS is $1.58 against our $7.52, a 4.8x gap. Working backwards,
-$1.58 implies a Q4 VLCC spot TCE near $92,000/day, below Q3 and a seventh of
-what is already locked in printed weeks. It has not moved since before the
-spike began (1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days) while the
-Q3 figure rose 1.38 -> 2.27. **Two** analysts carry the Q4 cell. Read it as
-stale rather than considered — but it is the only independent check available.
+Consensus Q4 EPS is $1.58. Off Frontline's own disclosure, Q4 lands near
+$6.50-8.00 depending on `k`, and the quarter is 92% fed. Working backwards,
+$1.58 implies a Q4 VLCC spot TCE near $92,000/day against 562,600 already
+contracted on 68% of the days. It has not moved since before the spike began
+(1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days) while the Q3 figure
+rose 1.38 -> 2.27 and then reported 2.38. **Two** analysts carry the Q4 cell.
+Read it as stale rather than considered - but it is the only independent check
+available.
