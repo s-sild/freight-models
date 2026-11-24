@@ -83,9 +83,9 @@
     "source": "Frontline Q2 2026 'cash generation' slide, 28 August 2026"
   },
   "required_yields": {
-    "base": 0.24,
-    "alt": 0.2,
-    "note": "0.24 is not an assumption. On 28 August 2026, the day the slide was published, FRO closed at $41.40 against the slide's own $10.35 base-case FCF/share - a 25.0% cap rate. 24% sits a point inside that."
+    "base": 0.44,
+    "alt": 0.24,
+    "note": "0.44 is Frontline's own: the Q3 2026 cash-generation slide prints 'Free Cash Flow Yield (annualized) of ~44%' at its centre rates (VLCC 250.0k, SMAX 150.0k, Afra/LR2 128.6k, 19.70 FCF per share). Our bridge gives 20.01 adjusted EPS at those same rates, 1.6% apart, so the two agree on what a year is worth. 0.24 is kept as the second column: on 28 August 2026 FRO closed at $41.40 against the then-slide's $10.35 base-case FCF/share, a 25.0% cap rate, and 24% sits a point inside that. NEITHER IS A VALUATION. A required yield compensates for risk; it is not a mechanism for 'this rate will not last'. At $44.45 the market pays 2.2x one year at the slide's centre rates; 24% implies 4.2x and 44% implies 2.3x. The spread between those multiples is a judgement about how many years the rate persists, which nothing in this repo can answer."
   },
   "quarters_12m": [
     "2026Q4",
@@ -105,15 +105,15 @@
   },
   "quarters_note": "The window opens on the nearest UNREPORTED quarter and rolls forward one when Frontline reports. That first quarter always has a disclosed coverage % and contracted rate, so it is priced with coverage() and is frozen - the forward-curve controls cannot move it. Later quarters have no disclosure and use the kernel.",
   "consensus": {
-    "source": "Normalized EPS, retrieved 2026-11-04. Analyst count is per column: 3 for Q3, 2 for Q4, 4 for FY2026, 5 for FY2027.",
+    "source": "Analyst consensus EPS, retrieved 2026-11-24, after the Q3 report. Supersedes the 2026-11-04 set, where Q4 read 1.58. Analyst counts per column are not known for this vintage and are therefore not recorded.",
     "eps": {
-      "2026Q3": 2.27,
-      "2026Q4": 1.58,
-      "FY2026": 10.24,
-      "FY2027": 6.24
+      "2026Q4": 6.11,
+      "2027Q1": 2.88,
+      "2027Q2": 1.59,
+      "2027Q3": 0.93
     },
-    "note": "Reference only, never an input. The Q4 estimate has not moved since before the spike began: 1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days, while the Q3 estimate rose 1.38 -> 2.27 over the same window. Consensus Q4 of 1.58 implies a VLCC spot TCE of about 92,000/day, below Q3 and a seventh of what is already locked in printed weeks.",
-    "basis": "Normalized EPS equals Frontline's ADJUSTED profit per share, which is what our bridge produces: ours gives 1.55 (2026Q1) and 2.61 (2026Q2) and the reports state exactly those. Frontline's GAAP figures for the same quarters were 2.51 and 2.96. TradingView's EPS series is GAAP and is NOT comparable - do not substitute it here."
+    "basis": "UNCONFIRMED for this vintage - the source view did not show whether it is normalized or GAAP. Our EPS is Frontline ADJUSTED profit per share. GAAP has exceeded adjusted in each of the last three quarters, by 0.96, 0.35 and 0.50, on vessel sales and securities marks, so if these are GAAP the adjusted equivalents are lower and every implied rate below is overstated. The earlier normalized series WAS confirmed equal to adjusted: our bridge gave 1.55 (2026Q1) and 2.61 (2026Q2) and the reports state exactly those.",
+    "note": "Reference only, never an input. Q4 2026 moved 1.58 -> 6.11 on the Q3 report, closing the gap to our ~7.00 from 4.6x to 1.15x. The disagreement is now entirely about 2027. Holding SMAX = 0.60 x VLCC, the deck's own ratio, these imply VLCC 351,253 (2026Q4), 169,349 (2027Q1), 95,152 (2027Q2) and 66,265 (2027Q3) - day-weighted 103,203 across the nine months of 2027 covered. That is 41% below Frontline's own -30% bar of 175,000 and 46% below the 1-yr T/C of 190,000. The Q4 figure still implies 351,253 against 562,600 already contracted on 68% of the quarter's days."
   },
   "tce_to_profit": {
     "gap_musd": 173.1,

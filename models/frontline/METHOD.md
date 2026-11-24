@@ -177,11 +177,34 @@ EPS, the basis this model produces and the one Frontline's normalized
 consensus is quoted on. GAAP is a different number - 2.51 against 1.55
 adjusted in 2026Q1 - so a GAAP series is not a comparator.
 
-Consensus Q4 EPS is $1.58. Off Frontline's own disclosure, Q4 lands near
-$6.50-8.00 depending on `k`, and the quarter is 92% fed. Working backwards,
-$1.58 implies a Q4 VLCC spot TCE near $92,000/day against 562,600 already
-contracted on 68% of the days. It has not moved since before the spike began
-(1.40 / 1.60 / 1.58 / 1.58 / 1.58 at 90/60/30/7/0 days) while the Q3 figure
-rose 1.38 -> 2.27 and then reported 2.38. **Two** analysts carry the Q4 cell.
-Read it as stale rather than considered - but it is the only independent check
-available.
+Consensus moved on the Q3 report: Q4 2026 went **1.58 -> 6.11**, closing the
+gap to our ~7.00 from 4.6x to 1.15x. The Q4 argument is effectively over.
+
+What remains is 2027. Holding SMAX = 0.60 x VLCC, the ratio Frontline's own
+cash slide uses, consensus implies:
+
+| quarter | consensus EPS | implied VLCC |
+|---|---|---|
+| 2026Q4 | 6.11 | 351,253 |
+| 2027Q1 | 2.88 | 169,349 |
+| 2027Q2 | 1.59 | 95,152 |
+| 2027Q3 | 0.93 | 66,265 |
+
+Day-weighted over the nine months of 2027 covered: **103,203**. That is 41%
+below Frontline's own -30% bar (175,000) and 46% below the 1-yr T/C owners are
+signing today (190,000). Even the revised Q4 figure implies 351,253 against
+562,600 already contracted on 68% of that quarter's days.
+
+Two caveats. The basis of this vintage is UNCONFIRMED - if it is GAAP rather
+than normalized, the adjusted equivalents are lower and every implied rate
+above is overstated. And the 0.60 Suezmax ratio is the deck's; spot is
+currently 0.48, and a higher Suezmax would push the implied VLCC lower still.
+
+**On the two required yields.** 44% is Frontline's own printed figure at the
+slide's centre rates; 24% is the cap rate the market applied on 28 August
+2026. Neither is a valuation. A required yield compensates for risk - it is
+not a mechanism for "this rate will not last", and using it as one mixes two
+judgements and gets neither right. At $44.45 the market pays 2.2x one year at
+the centre rates; 24% implies 4.2x and 44% implies 2.3x. That spread is a view
+on how many years the rate persists. This model prices a year. It cannot price
+the cycle, and no amount of work in this repo will change that.
