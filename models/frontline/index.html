@@ -120,12 +120,18 @@ import { parseCSV, num, blend, kernelQuarter, quarterRate, quarterBounds, covera
 import { lineChart } from "../../core/viz.js";
 
 const DAY = 86400000;
-const get = async f => parseCSV(await (await fetch(f)).text());
+// cache: "no-cache" forces the browser to revalidate every data file with the
+// server instead of serving its stored copy. GitHub Pages sets caching headers
+// on these CSVs, so a plain fetch() renders last week's numbers off a current
+// deployment until someone hard-refreshes - which is what kept happening.
+// Not "no-store": revalidation still returns 304 when nothing changed, so an
+// unchanged file costs a round trip and no body.
+const get = async f => parseCSV(await (await fetch(f, { cache: "no-cache" })).text());
 const ts = d => Date.parse(d + "T00:00:00Z");
 const S1 = getComputedStyle(document.documentElement).getPropertyValue("--series-1").trim();
 const S2 = getComputedStyle(document.documentElement).getPropertyValue("--series-2").trim();
 
-const cfg = await (await fetch("config.json")).json();
+const cfg = await (await fetch("config.json", { cache: "no-cache" })).json();
 const [baltic, tcw, px, quarterly, vvals, fixtures, edays, chart] = await Promise.all(
   ["data/baltic_weekly.csv","data/tc_weekly.csv","data/price.csv",
    "data/fro_quarterly.csv","data/vessel_values.csv","data/fro_fixtures.csv",
