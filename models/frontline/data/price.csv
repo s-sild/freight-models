@@ -12,3 +12,4 @@ date,close,source
 2026-10-16,52.49,user-supplied close; date inferred as the Friday after 10-15
 2026-11-03,52.45,IBKR daily bar (NYSE FRO) retrieved 2026-11-04; last completed session
 2026-11-19,44.75,IBKR daily bar (NYSE FRO) retrieved 2026-11-20; last completed session
+2026-11-24,47.53,IBKR daily bar (NYSE FRO) retrieved 2026-11-25; last completed session
